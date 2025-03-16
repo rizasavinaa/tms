@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { LogOut, reset } from "../features/authSlice";
+import Swal from "sweetalert2";
 
-function sidebarpekerjakreatif(){
+
+function Sidebarpekerjakreatif(){
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const reduxUser = useSelector((state) => state.auth.user);
@@ -193,4 +197,4 @@ function sidebarpekerjakreatif(){
     );
 }
 
-export default sidebarpekerjakreatif;
+export default Sidebarpekerjakreatif;

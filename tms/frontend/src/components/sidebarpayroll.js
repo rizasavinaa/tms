@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { LogOut, reset } from "../features/authSlice";
+import Swal from "sweetalert2";
 
-function sidebarpayroll(){
+
+function Sidebarpayroll(){
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const reduxUser = useSelector((state) => state.auth.user);
@@ -126,4 +130,4 @@ function sidebarpayroll(){
     );
 }
 
-export default sidebarpayroll;
+export default Sidebarpayroll;

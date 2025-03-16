@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { LogOut, reset } from "../features/authSlice";
+import Swal from "sweetalert2";
 
-function sidebarclient(){
+
+function Sidebarclient(){
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const reduxUser = useSelector((state) => state.auth.user);
@@ -24,7 +28,7 @@ function sidebarclient(){
           }
         });
     };
-    
+
     return(
         <React.Fragment>
         {/*begin::Header*/}
@@ -142,4 +146,4 @@ function sidebarclient(){
     );
 }
 
-export default sidebarclient;
+export default Sidebarclient;

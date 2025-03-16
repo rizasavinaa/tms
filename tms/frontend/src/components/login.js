@@ -12,7 +12,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user, isLoading } = useSelector((state) => state.auth);
+  const { user, isLoading, isError, message  } = useSelector((state) => state.auth);
 
   // ✅ Gunakan useBodyClass tanpa kondisi agar tidak error
   useBodyClass(["login-page", "bg-body-secondary"]);
@@ -57,6 +57,7 @@ const Login = () => {
     return null;
   }
 
+
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
       <div className="login-box">
@@ -67,6 +68,7 @@ const Login = () => {
 
         <div className="card">
           <div className="card-body login-card-body">
+          {isError && <p className="text-danger text-center">{message}</p>}
             <form onSubmit={Auth}>
               <div className="input-group mb-3">
                 <input type="email" className="form-control"  

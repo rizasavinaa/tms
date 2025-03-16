@@ -22,6 +22,7 @@ export const LoginUser = createAsyncThunk("user/LoginUser", async(user, thunkAPI
             const message = error.response.data.msg;
             return thunkAPI.rejectWithValue(message);
         }
+        return thunkAPI.rejectWithValue("Terjadi kesalahan saat login"); // 🔹 Tambahkan handling jika error.response tidak ada
     }
 });
 
