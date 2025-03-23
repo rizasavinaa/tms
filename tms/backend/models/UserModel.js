@@ -14,8 +14,7 @@ const User = db.define('user', {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
-            notEmpty: true,
-            len: [3, 100]
+            notEmpty: true
         }
     },
     email: {
@@ -30,9 +29,7 @@ const User = db.define('user', {
     password: {
         type: DataTypes.STRING,
         allowNull: false,  // Wajib diisi agar tidak ada error notEmpty
-        validate: {
-            notEmpty: true
-        }
+        defaultValue: "",
     },
     role_id: {
         type: DataTypes.INTEGER,
@@ -52,6 +49,14 @@ const User = db.define('user', {
         validate: {
             notEmpty: true
         }
+    },
+    last_login: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    last_ip: {
+        type: DataTypes.STRING,
+        allowNull: true  // Bisa null kalau belum login
     }
 }, {
     freezeTableName: true,  // Menghindari perubahan nama tabel oleh Sequelize

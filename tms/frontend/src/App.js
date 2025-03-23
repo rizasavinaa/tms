@@ -1,45 +1,42 @@
-import { lazy, Suspense } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import { useEffect, lazy } from "react";
 import { useDispatch } from "react-redux";
 import { getMe } from "./features/authSlice";
-const UserList = lazy(() => import("./components/UserList"));
-const AddUser = lazy(() => import("./components/AddUser"));
-const EditUser = lazy(() => import("./components/EditUser"));
-const Karyawanhome = lazy(() => import("./components/karyawanhome"));
-const Pekerjakreatifhome = lazy(() => import("./components/pekerjakreatifhome"));
-const Clienthome = lazy(() => import("./components/clienthome"));
-const Ithome = lazy(() => import("./components/ithome"));
-const Payrollhome= lazy(() => import("./components/payrollhome"));
-const Login = lazy(() => import("./components/login"));
-const Loading = lazy(() => import('./components/loading'));
-const NoAccess = lazy(() => import('./components/NoAccess'));
-const NotFound = lazy(() => import('./components/NotFound'));
+
+import ItRoutes from "./routes/it";
+import KaryawanRoutes from "./routes/karyawan";
+import ClientRoutes from "./routes/client";
+import PekerjakreatifRoutes from "./routes/pekerjakreatif";
+import PayrollRoutes from "./routes/payroll";
+import AuthRoutes from "./routes/auth";
+import NotFound from "./components/NotFound";
+import Login from "./components/login";
+import NoAccess from "./components/NoAccess";
+import ResetPassword from "./components/ResetPassword";
 
 function App() {
   const dispatch = useDispatch();
 
-    useEffect(() => {
-        dispatch(getMe());  // Ambil data user setiap kali aplikasi dibuka
-    }, [dispatch]);
+  useEffect(() => {
+    dispatch(getMe()); // Ambil data user saat aplikasi dibuka
+  }, [dispatch]);
+
   return (
     <Router>
-      <Suspense fallback={<Loading />}>
-          <Routes>
-            <Route path="/" element={<Login/>}/>
-            <Route path="users/" element={<UserList/>}/>
-            <Route path="add" element={<AddUser/>}/>
-            <Route path="edit/:id" element={<EditUser/>}/>
-            <Route path="/karyawan" element={<Karyawanhome/>}/>
-            <Route path="/pekerjakreatif" element={<Pekerjakreatifhome/>}/>
-            <Route path="/client" element={<Clienthome/>}/>
-            <Route path="/it" element={<Ithome/>}/>
-            <Route path="/payroll" element={<Payrollhome/>}/>
-            <Route path="/login" element={<Login/>}/>
-            <Route path="/no-access" element={<NoAccess/>}/>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-      </Suspense>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/it/*" element={<ItRoutes />} />
+        <Route path="/karyawan/*" element={<KaryawanRoutes />} />
+        <Route path="/client/*" element={<ClientRoutes />} />
+        <Route path="/pekerjakreatif/*" element={<PekerjakreatifRoutes />} />
+        <Route path="/payroll/*" element={<PayrollRoutes />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/no-access" element={<NoAccess />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        
+        {/* Route NotFound harus paling bawah untuk menangkap rute yang tidak ada */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </Router>
   );
 }

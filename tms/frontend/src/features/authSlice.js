@@ -76,6 +76,10 @@ export const authSlice = createSlice({
             state.isError = true;
             state.message = action.payload;
         })
+
+        builder.addCase(LogOut.fulfilled, (state) => {
+            return initialState; // Reset Redux state setelah logout
+        });
     }
 });
 

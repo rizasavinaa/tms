@@ -1,7 +1,8 @@
 import User from "../models/UserModel.js";
 import argon2 from "argon2";
-import Privilege from "../models/PrivilegeModel.js"; 
 import RolePrivilege from "../models/RolePrivilegeModel.js"; 
+import UserLog from "../models/UserLogModel.js";
+import requestIp from "request-ip";
 
 export const Login = async (req, res) => {
     const user = await User.scope(null).findOne({
@@ -10,8 +11,19 @@ export const Login = async (req, res) => {
     
     if (!user) return res.status(404).json({ msg: "User tidak ditemukan" });
 
+    // ❌ Cek apakah user nonaktif
+    if (user.status === 0) {
+        return res.status(403).json({ msg: "Akun Anda berstatus nonaktif" });
+    }
+
     const match = await argon2.verify(user.password, req.body.password);
     if (!match) return res.status(400).json({ msg: "Password Salah" });
+
+     // 🔥 Simpan IP dan last_login
+    await User.update({ 
+        last_login: new Date(),
+        last_ip: req.ip  // 🚀 Simpan IP login
+    }, { where: { id: user.id } });
 
     req.session.userId = user.id;
     req.session.roleId = user.role_id;
@@ -26,6 +38,15 @@ export const Login = async (req, res) => {
             role_id: user.role_id
         });
     });
+
+    // 🔹 Simpan log login
+    await UserLog.create({
+      user_id: user.id,
+      changes: "Login",
+      ip_address: requestIp.getClientIp(req), // Ambil IP user
+      createdBy: user.id,
+    });
+
 };
 
 
@@ -48,12 +69,33 @@ export const Me = async (req, res) => {
 };
 
 
-export const logOut = (req, res) =>{
-    req.session.destroy((err)=>{
-        if(err) return res.status(400).json({msg: "Tidak dapat logout"});
-        res.status(200).json({msg: "Anda telah logout"});
-    });
-}
+export const logOut = async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Anda belum login" });
+      }
+  
+      // 🔹 Simpan log logout ke database
+      await UserLog.create({
+        user_id: userId,
+        changes: "Logout",
+        ip_address: requestIp.getClientIp(req),
+        createdBy: userId,
+      });
+  
+      // 🔹 Hapus sesi
+      req.session.destroy((err) => {
+        if (err) {
+          return res.status(400).json({ message: "Tidak dapat logout" });
+        }
+        res.status(200).json({ message: "Anda telah logout" });
+      });
+  
+    } catch (error) {
+      res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
+    }
+};
 
 
 export const checkPrivilege = async (req, res) => {

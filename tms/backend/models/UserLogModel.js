@@ -37,6 +37,6 @@ const UserLog = db.define('user_log',{
 });
 
 User.hasMany(UserLog, {foreignKey: 'user_id'});
-UserLog.belongsTo(User,{foreignKey: 'role_id'});
+UserLog.belongsTo(User,{foreignKey: 'user_id'});
 
 export default UserLog;

@@ -3,35 +3,27 @@ import db from "../config/Database.js";
 
 const { DataTypes } = Sequelize;
 
-const Role = db.define("role", {
+const RoleLog = db.define("role_log", {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     },
-    name: {
-        type: DataTypes.STRING,
+    role_id: {
+        type: DataTypes.INTEGER,
         allowNull: false,
-        validate: {
-            notEmpty: true,
-            len: [1, 100],
-        },
     },
-    description: {
+    changes: {
         type: DataTypes.TEXT,
         allowNull: false,
-        defaultValue: "",
     },
     createdBy: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        validate: {
-            notEmpty: true,
-        },
     },
 }, {
     freezeTableName: true,
-    timestamps: true,  // Menambahkan createdAt & updatedAt otomatis
+    timestamps: true,  // createdAt & updatedAt otomatis
 });
 
-export default Role;
+export default RoleLog;
