@@ -5,6 +5,7 @@ import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarit";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
+import { Link } from "react-router-dom";
 
 const UsersList = () => {
     useAuthRedirect(3);
@@ -143,9 +144,15 @@ const UsersList = () => {
                                             <td>{user.fullname}</td>
                                             <td>{user.role ? user.role.name : "Tidak ada role"}</td>
                                             <td>{user.status === 1 ? "Aktif" : "Nonaktif"}</td>
-                                            <td>{user.last_login || "Belum login"}</td>
                                             <td>
-                                              <button className="btn btn-secondary btn-sm me-1">Lihat Detail</button>
+                                            {user.last_login 
+                                            ? new Date(user.last_login).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })
+                                            : "Belum login"}
+                                            </td>
+                                            <td>
+                                            <Link to={`${user.id}`} className="btn btn-secondary btn-sm me-1">
+                                                Lihat Detail
+                                            </Link>
                                               <button
                                                   className={`btn btn-${user.status === 1 ? "danger" : "success"} btn-sm`}
                                                   onClick={() => toggleStatus(user.id, user.status)}

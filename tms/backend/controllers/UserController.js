@@ -415,3 +415,82 @@ export const updatePassUser = async (req, res) => {
     return res.status(400).json({ msg: "Token tidak valid atau kedaluwarsa" });
   }
 };
+
+export const resetPassword = async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    // Cari user langsung
+    const user = await User.findOne({
+      where: { id: userId },
+      include: [{
+        model: Role,
+        as: "role",
+        attributes: ["name"],
+      }]
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User tidak ditemukan" });
+    }
+
+    const resetToken = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1);
+
+    const transaction = await sequelize.transaction();
+
+    await PasswordReset.destroy({
+      where: { user_id: user.id },
+      transaction
+    });
+
+    await PasswordReset.create({
+      user_id: user.id,
+      token: resetToken,
+      expires_at: expiresAt
+    }, { transaction });
+
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    await sendResetEmail(user.email, resetLink);
+    await transaction.commit();
+
+    return res.status(200).json({ message: "Link reset password telah dikirim ke email user." });
+
+  } catch (error) {
+    console.error("🔥 ERROR:", error.message);
+    return res.status(500).json({ message: "Gagal mengirim reset password", error: error.message });
+  }
+};
+
+
+const sendResetEmail = async (email, resetLink) => {
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    secure: process.env.SMTP_SECURE === "true",
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "Setel Kata Sandi Anda",
+    html: `
+      <p>Silakan klik link di bawah ini untuk mengatur ulang kata sandi Anda:</p>
+      <a href="${resetLink}">${resetLink}</a>
+      <p>Link ini berlaku selama 1 jam.</p>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};

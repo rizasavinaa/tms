@@ -31,16 +31,37 @@ const Login = () => {
   }, [dispatch]);
 
   // 🔹 Redirect jika user sudah login
+  // useEffect(() => {
+    // if (user?.role_id) {
+    //   const targetRoute = roleRoutes[user.role_id] || "/";
+    //   if (window.location.pathname !== targetRoute) {
+    //     console.log("User sudah login, redirect ke:", targetRoute);
+    //     navigate(targetRoute, { replace: true });
+    //     window.location.reload();  // 🔹 Paksa reload agar script halaman tujuan berjalan
+    //   }
+    // }
+  // }, [user, roleRoutes, navigate]);
+
   useEffect(() => {
+    if (isLoading) return; // Tunggu sampai data user selesai di-fetch
+
     if (user?.role_id) {
-      const targetRoute = roleRoutes[user.role_id] || "/";
+      const savedRedirect = sessionStorage.getItem("redirectAfterLogin");
+      const defaultRoute = roleRoutes[user.role_id] || "/";
+      const targetRoute = savedRedirect || defaultRoute;
+    
+      // Bersihkan sessionStorage agar tidak nyangkut
+      sessionStorage.removeItem("redirectAfterLogin");
+    
+      // Cek apakah kita sudah berada di halaman yang sama
       if (window.location.pathname !== targetRoute) {
         console.log("User sudah login, redirect ke:", targetRoute);
         navigate(targetRoute, { replace: true });
-        window.location.reload();  // 🔹 Paksa reload agar script halaman tujuan berjalan
+        window.location.reload();  // optional, untuk force reload
       }
     }
-  }, [user, roleRoutes, navigate]);
+}, [isLoading, user, roleRoutes, navigate]);
+
 
   const Auth = (e) => {
     e.preventDefault();

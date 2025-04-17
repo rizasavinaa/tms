@@ -22,6 +22,7 @@ function Sidebarclient(){
           cancelButtonText: "Batal",
         }).then((result) => {
           if (result.isConfirmed) {
+            sessionStorage.removeItem("redirectAfterLogin");
             dispatch(LogOut());
             dispatch(reset());
             navigate("/");

@@ -5,7 +5,7 @@ import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 
 const Clienthome = () => {
-  useAuthRedirect(4);
+  // useAuthRedirect(4);
 
   return (
       <React.Fragment>

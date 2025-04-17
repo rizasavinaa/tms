@@ -5,7 +5,7 @@ import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 
 const Payrollhome = () => {
-  useAuthRedirect(5);
+  // useAuthRedirect(5);
   return (
       <React.Fragment>
         <Sidebar/>

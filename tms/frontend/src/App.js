@@ -12,7 +12,6 @@ import AuthRoutes from "./routes/auth";
 import NotFound from "./components/NotFound";
 import Login from "./components/login";
 import NoAccess from "./components/NoAccess";
-import ResetPassword from "./components/ResetPassword";
 
 function App() {
   const dispatch = useDispatch();
@@ -32,7 +31,6 @@ function App() {
         <Route path="/payroll/*" element={<PayrollRoutes />} />
         <Route path="/login" element={<Login />} />
         <Route path="/no-access" element={<NoAccess />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
         
         {/* Route NotFound harus paling bawah untuk menangkap rute yang tidak ada */}
         <Route path="*" element={<NotFound />} />
@@ -42,3 +40,5 @@ function App() {
 }
 
 export default App;
+
+

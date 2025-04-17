@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getMe } from "./authSlice";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 const useAuthRedirect = (privilegeId) => {
@@ -9,6 +9,7 @@ const useAuthRedirect = (privilegeId) => {
     const navigate = useNavigate();
     const { user, isError, isLoading } = useSelector((state) => state.auth);
     const [loading, setLoading] = useState(true);
+    const location = useLocation();
 
     const roleRoutes = useMemo(() => ({
         1: "/it",
@@ -26,17 +27,32 @@ const useAuthRedirect = (privilegeId) => {
     useEffect(() => {
         if (isLoading) return; // Tunggu proses getMe selesai
 
+        // if (isError) {
+        //     sessionStorage.setItem("redirectAfterLogin", location.pathname);
+        //     console.log("User tidak ditemukan, redirect ke /login");
+        //     navigate("/login");
+        //     return;
+        // }
+
         if (isError) {
-            console.log("User tidak ditemukan, redirect ke /login");
+            //belum login simpan terus halaman yg mau dituju
+            const savedRedirect = sessionStorage.getItem("redirectAfterLogin");
+            sessionStorage.setItem("redirectAfterLogin", location.pathname + location.search);
+            console.log('simpan', location.pathname + location.search);
+            console.log("User tidak ditemukan, redirect ke /logink");
             navigate("/login");
             return;
         }
+        
 
         if (user) {
             const targetRoute = roleRoutes[user?.role_id] || "/";
+            //sudah redirect maka dihapus sessionnya
+            sessionStorage.removeItem("redirectAfterLogin");
             console.log("User sudah login, redirect ke:", targetRoute);
             setLoading(false);
         }
+        
     }, [isError, isLoading, user, roleRoutes, navigate]);
 
     useEffect(() => {
@@ -63,3 +79,4 @@ const useAuthRedirect = (privilegeId) => {
 };
 
 export default useAuthRedirect;
+
