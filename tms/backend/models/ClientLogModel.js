@@ -1,17 +1,17 @@
 import {Sequelize} from "sequelize";
 import db from "../config/Database.js";
-import User from "./UserModel.js";
+import Client from "./ClientModel.js";
 import { defaultValueSchemable } from "sequelize/lib/utils";
 
 const {DataTypes} = Sequelize;
 
-const UserLog = db.define('user_log',{
+const ClientLog = db.define('client_log',{
     id:{
         type: DataTypes.INTEGER, // Tipe data integer
         autoIncrement: true, // Auto-increment otomatis
         primaryKey: true, // Dijadikan primary key
     },
-    user_id:{
+    client_id:{
         type: DataTypes.INTEGER,
         allowNull: false,
         validate:{
@@ -40,10 +40,7 @@ const UserLog = db.define('user_log',{
     updatedAt: false, // Hanya menyimpan createdAt
 });
 
-User.hasMany(UserLog, {foreignKey: 'user_id'});
-UserLog.belongsTo(User,{foreignKey: 'user_id'});
+Client.hasMany(ClientLog, {foreignKey: 'client_id'});
+ClientLog.belongsTo(Client,{foreignKey: 'client_id'});
 
-User.hasMany(UserLog, { foreignKey: 'createdBy', as: 'createdLogs' });
-UserLog.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
-
-export default UserLog;
+export default ClientLog;

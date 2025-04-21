@@ -1,96 +1,64 @@
 import User from "../models/UserModel.js";
 import UserLog from "../models/UserLogModel.js";
+import ClientLog from "../models/ClientLogModel.js";
+import PrivilegeLog from "../models/PrivilegeLogModel.js";
+import RoleLog from "../models/RoleLogModel.js";
+import TalentLog from "../models/TalentLogModel.js";
+import TalentCategoryLog from "../models/TalentCategoryLogModel.js";
+import TalentStatusLog from "../models/TalentStatusLogModel.js";
+import TalentPortofolioLog from "../models/TalentPortofolioLogModel.js";
+import TalentWorkHistoryLog from "../models/TalentWorkHistoryLogModel.js";
+import TalentWorkProofLog from "../models/TalentWorkProofLogModel.js";
 import Role from "../models/RoleModel.js";
 import argon2 from "argon2";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import { Sequelize } from "sequelize";  
-import sequelize from "../config/Database.js"; 
+import { Op, Sequelize } from "sequelize";
+import sequelize from "../config/Database.js";
 import PasswordReset from "../models/PasswordResetModel.js";
+import requestIp from "request-ip";
 
 dotenv.config();
 
 export const getUsers = async (req, res) => {
   try {
-      const response = await User.findAll({
-          include: [{
-              model: Role, // Pastikan model Role sudah di-import
-              as: "role", // Alias untuk role
-              attributes: ["name"], // Ambil hanya field 'name'
-          }],
-      });
-      res.status(200).json(response);
+    const response = await User.findAll({
+      include: [{
+        model: Role, // Pastikan model Role sudah di-import
+        as: "role", // Alias untuk role
+        attributes: ["name"], // Ambil hanya field 'name'
+      }],
+    });
+    res.status(200).json(response);
   } catch (error) {
-      console.error(error.message);
-      res.status(500).json({ message: "Terjadi kesalahan saat mengambil data users" });
+    console.error(error.message);
+    res.status(500).json({ message: "Terjadi kesalahan saat mengambil data users" });
   }
 };
 
 export const getUserById = async (req, res) => {
   try {
-      const response = await User.findOne({
-          where: {
-              id: req.params.id,
-          },
-          include: [{
-              model: Role,
-              as: "role",
-              attributes: ["name"],
-          }],
-      });
-      res.status(200).json(response);
+    const response = await User.findOne({
+      where: {
+        id: req.params.id,
+      },
+      include: [{
+        model: Role,
+        as: "role",
+        attributes: ["name"],
+      }],
+    });
+    res.status(200).json(response);
   } catch (error) {
-      console.error(error.message);
-      res.status(500).json({ message: "Terjadi kesalahan saat mengambil data user" });
+    console.error(error.message);
+    res.status(500).json({ message: "Terjadi kesalahan saat mengambil data user" });
   }
 };
 
-
-// export const createUser = async (req, res) => {
-//     const transaction = await sequelize.transaction(); // Mulai transaksi
-//     console.log("Data dari frontend:", req.body); // 🔍 Cek data yang dikirim
-//     try {
-//       const createdBy = req.session.userId; // Ambil ID user dari session
-//       if (!createdBy) {
-//         return res.status(401).json({ message: "Unauthorized: No user session" });
-//       }
-      
-//       // 🔹 Cek apakah email sudah ada
-//       const existingUser = await User.findOne({ where: { email: req.body.email } });
-//       if (existingUser) {
-//         return res.status(400).json({ message: "Email sudah digunakan" }); // 🔥 Email sudah ada
-//       }
-
-//       // 1️⃣ Ambil data dari req.body, tambahkan createdBy
-//       const userData = { ...req.body, createdBy };
-  
-//       // 2️⃣ Buat user baru di database
-//       const newUser = await User.create(userData, { transaction });
-      
-//       // 3️⃣ Buat log dengan `changes`
-//       await UserLog.create({
-//         user_id: newUser.id,
-//         changes:JSON.stringify({
-//           action: "User Created",
-//           fields: Object.keys(req.body),
-//           values: req.body,
-//         }), // 🔹 Ubah menjadi string JSON
-//         createdBy,
-//       }, { transaction });
-  
-//       await transaction.commit(); // ✅ Simpan ke database
-//       res.status(201).json({ message: "User & Log created", user: newUser });
-//     } catch (error) {
-//       await transaction.rollback(); // ❌ Batalkan jika ada error
-//       console.error("🔥 ERROR di createUser:", error); // 🛑 Cek log di terminal
-//       res.status(500).json({ message: "Error creating user", error: error.message }); // Kirim detail error
-//     }
-// };
-
 export const createUser = async (req, res) => {
   console.log("🚀 Request body yang diterima:", req.body); // ✅ Cek apakah emailPassword "ya"
-  
+
   const createUserTransaction = await sequelize.transaction();
   const resetPasswordTransaction = await sequelize.transaction();
   try {
@@ -117,6 +85,7 @@ export const createUser = async (req, res) => {
         values: req.body,
       }),
       createdBy,
+      ip: requestIp.getClientIp(req)
     }, { transaction: createUserTransaction });
 
     await createUserTransaction.commit();
@@ -137,13 +106,13 @@ export const createUser = async (req, res) => {
       try {
         // Menggunakan transaksi terpisah untuk PasswordReset
         await PasswordReset.destroy({ where: { user_id: newUser.id }, transaction: resetPasswordTransaction });
-      
+
         const resetEntry = await PasswordReset.create({
           user_id: newUser.id,
           token: resetToken,
           expires_at: expiresAt
         }, { transaction: resetPasswordTransaction });
-      
+
         console.log("✅ Token berhasil disimpan di DB:", resetEntry);
       } catch (dbError) {
         await resetPasswordTransaction.rollback();
@@ -168,8 +137,6 @@ export const createUser = async (req, res) => {
     res.status(500).json({ message: "Error creating user", error: error.message });
   }
 };
-
-
 
 const sendWelcomeEmail = async (email, resetLink) => {
   try {
@@ -208,171 +175,115 @@ const sendWelcomeEmail = async (email, resetLink) => {
   }
 };
 
-
-
 export const verifyResetToken = async (req, res) => {
   try {
-      const { token } = req.query;
-      if (!token) return res.status(400).json({ message: "Token tidak valid" });
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ message: "Token tidak valid" });
 
-      const resetRecord = await PasswordReset.findOne({ where: { token } });
-      if (!resetRecord) return res.status(400).json({ message: "Token tidak ditemukan" });
+    const resetRecord = await PasswordReset.findOne({ where: { token } });
+    if (!resetRecord) return res.status(400).json({ message: "Token tidak ditemukan" });
 
-      // Cek apakah token sudah kedaluwarsa
-      if (new Date() > resetRecord.expires_at) {
-          return res.status(400).json({ message: "Token kedaluwarsa" });
-      }
+    // Cek apakah token sudah kedaluwarsa
+    if (new Date() > resetRecord.expires_at) {
+      return res.status(400).json({ message: "Token kedaluwarsa" });
+    }
 
-      res.status(200).json({ message: "Token valid", userId: resetRecord.user_id });
+    res.status(200).json({ message: "Token valid", userId: resetRecord.user_id });
   } catch (error) {
-      res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
+    res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
   }
 };
-
 
 export const updateUser = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-      const userId = req.params.id;
-      const createdBy = req.session.userId;
+    const userId = req.params.id;
+    const createdBy = req.session.userId;
 
-      console.log("User ID:", userId);
+    if (!createdBy) {
+      return res.status(401).json({ message: "Unauthorized: No user session" });
+    }
 
-      if (!createdBy) {
-          return res.status(401).json({ message: "Unauthorized: No user session" });
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const updatedFields = {};
+    const oldValues = {};
+
+    Object.keys(req.body).forEach((key) => {
+      if (user[key] !== req.body[key]) {
+        oldValues[key] = user[key];           // nilai sebelum diupdate
+        updatedFields[key] = req.body[key];   // nilai sesudah diupdate
       }
+    });
 
-      const user = await User.findByPk(userId);
-      if (!user) {
-          return res.status(404).json({ message: "User not found" });
-      }
+    await user.update(updatedFields, { transaction });
 
-      const updatedFields = {};
-      Object.keys(req.body).forEach((key) => {
-          if (user[key] !== req.body[key]) {
-              updatedFields[key] = req.body[key];
-          }
-      });
+    if (Object.keys(updatedFields).length > 0) {
+      await UserLog.create(
+        {
+          user_id: userId,
+          changes: JSON.stringify({
+            action: "User Updated",
+            fields: Object.keys(updatedFields),
+            oldValues,           // ✅ nilai lama
+            newValues: updatedFields, // ✅ nilai baru
+          }),
+          createdBy,
+          ip: requestIp.getClientIp(req),
+        },
+        { transaction }
+      );
+    }
 
-      // Debugging
-      console.log("Updating User ID:", userId);
-      console.log("Updated Fields:", updatedFields);
-
-      await user.update(updatedFields, { transaction });
-
-      if (Object.keys(updatedFields).length > 0) {
-          await UserLog.create(
-              {
-                  user_id: userId, // Pastikan userId tidak null
-                  changes: JSON.stringify({
-                      action: "User Updated",
-                      fields: Object.keys(updatedFields),
-                      values: updatedFields,
-                  }), // Convert object to string
-                  createdBy,
-              },
-              { transaction }
-          );
-      }
-
-      await transaction.commit();
-      res.status(200).json({ message: "User & Log updated", user });
+    await transaction.commit();
+    res.status(200).json({ message: "User & Log updated", user });
 
   } catch (error) {
-      await transaction.rollback();
-      console.error("Error updating user:", error);
-      res.status(500).json({ message: "Error updating user", error: error.message });
+    await transaction.rollback();
+    console.error("Error updating user:", error);
+    res.status(500).json({ message: "Error updating user", error: error.message });
   }
 };
 
 
-  
 export const deleteUser = async (req, res) => {
-    const transaction = await sequelize.transaction();
-  
-    try {
-      const userId = req.params.id;
-      const createdBy = req.session.userId;
-      if (!createdBy) {
-        return res.status(401).json({ message: "Unauthorized: No user session" });
-      }
-  
-      const user = await User.findByPk(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-  
-      await UserLog.create({
-        userId,
-        changes: {
-          action: "User Deleted",
-          values: user.toJSON(), // Simpan semua data sebelum dihapus
-        },
-        createdBy,
-      }, { transaction });
-  
-      await user.destroy({ transaction });
-  
-      await transaction.commit();
-      res.status(200).json({ message: "User & Log deleted" });
-    } catch (error) {
-      await transaction.rollback();
-      res.status(500).json({ message: "Error deleting user", error });
+  const transaction = await sequelize.transaction();
+
+  try {
+    const userId = req.params.id;
+    const createdBy = req.session.userId;
+    if (!createdBy) {
+      return res.status(401).json({ message: "Unauthorized: No user session" });
     }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await UserLog.create({
+      userId,
+      changes: {
+        action: "User Deleted",
+        values: user.toJSON(), // Simpan semua data sebelum dihapus
+      },
+      createdBy,
+      ip: requestIp.getClientIp(req)
+    }, { transaction });
+
+    await user.destroy({ transaction });
+
+    await transaction.commit();
+    res.status(200).json({ message: "User & Log deleted" });
+  } catch (error) {
+    await transaction.rollback();
+    res.status(500).json({ message: "Error deleting user", error });
+  }
 };
-
-// export const updatePassUser = async (req, res) => {
-//   const { password, confPassword } = req.body;
-
-//   // 1️⃣ Cek apakah password dan konfirmasi password cocok
-//   if (password !== confPassword) {
-//       return res.status(400).json({ msg: "Password dan Confirm Password tidak cocok" });
-//   }
-
-//   try {
-//       const userId = req.params.id;
-
-//       // 2️⃣ Cari user berdasarkan ID
-//       const user = await User.findByPk(userId);
-//       if (!user) {
-//           return res.status(404).json({ message: "User not found" });
-//       }
-
-//       // 3️⃣ Hash password baru
-//       const hashedPassword = await argon2.hash(password);
-
-//       // 4️⃣ Mulai transaksi database
-//       const transaction = await sequelize.transaction();
-
-//       try {
-//           // 5️⃣ Update password di database
-//           await user.update({ password: hashedPassword }, { transaction });
-
-//           // 6️⃣ Ambil user ID dari session atau token (pastikan session diimplementasikan)
-//           const updatedBy = req.session.userId || req.user.id || "System"; 
-
-//           // 7️⃣ Simpan log perubahan password
-//           await UserLog.create({
-//               user_id: userId, // Pastikan ini sesuai dengan nama kolom di database
-//               changes: JSON.stringify({ action: "Password Updated" }), // Simpan dalam format JSON
-//               createdBy: updatedBy,
-//           }, { transaction });
-
-//           // 8️⃣ Commit transaksi jika semua berhasil
-//           await transaction.commit();
-
-//           res.status(200).json({ message: "Password updated successfully" });
-
-//       } catch (error) {
-//           // 9️⃣ Rollback transaksi jika terjadi error
-//           await transaction.rollback();
-//           res.status(500).json({ msg: "Error updating password" });
-//       }
-//   } catch (error) {
-//       res.status(400).json({ msg: error.message });
-//   }
-// };
 
 export const updatePassUser = async (req, res) => {
   const { token, password, confPassword } = req.body;
@@ -469,7 +380,6 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-
 const sendResetEmail = async (email, resetLink) => {
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
@@ -493,4 +403,256 @@ const sendResetEmail = async (email, resetLink) => {
   };
 
   await transporter.sendMail(mailOptions);
+};
+
+export const getUserLog = async (req, res) => {
+  try {
+    const { user_id } = req.query;
+
+    if (!user_id) {
+      return res.status(400).json({ message: "user_id is required" });
+    }
+
+    const logs = await UserLog.findAll({
+      where: { user_id },
+      include: [
+        {
+          model: User,
+          attributes: ["fullname"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    const formattedLogs = logs.map((log) => ({
+      created_at: log.createdAt,
+      user: log.user ? log.user.fullname : "Unknown",
+      ip: log.ip,
+      changes: log.changes,
+    }));
+
+    res.json(formattedLogs);
+  } catch (error) {
+    console.error("Error fetching user logs:", error.message, error.stack);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getUserLogDataChanges = async (req, res) => {
+  try {
+    const { user_id } = req.query;
+
+    if (!user_id) {
+      return res.status(400).json({ message: "user_id is required" });
+    }
+
+    const logs = await UserLog.findAll({
+      where: {
+        user_id,
+        changes: {
+          [Op.notLike]: '%Log%', // changes TIDAK mengandung kata "Log"
+        },
+      },
+      include: [
+        {
+          model: User,
+          as: "creator",
+          attributes: ["fullname"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    const formattedLogs = logs.map((log) => ({
+      created_at: log.createdAt,
+      user: log.creator ? log.creator.fullname : "Unknown",
+      ip: log.ip,
+      changes: log.changes,
+    }));
+
+    res.json(formattedLogs);
+  } catch (error) {
+    console.error("Error fetching user logs:", error.message, error.stack);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getUserLogActivity = async (req, res) => {
+  try {
+    const { user_id } = req.query;
+
+    if (!user_id) {
+      return res.status(400).json({ message: "user_id is required" });
+    }
+
+    //aktivitas di user log
+    const logs = await UserLog.findAll({
+      where: {
+        user_id,
+        changes: {
+          [Op.like]: '%Log%', // changes mengandung kata "Log"
+        },
+      },
+      include: [
+        {
+          model: User,
+          attributes: ["fullname"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    //aktivitas di client log
+    const clientLogs = await ClientLog.findAll({
+      where: { createdby: user_id },
+      order: [["createdAt", "DESC"]],
+    });
+
+    //aktivitas di privilege log
+    const privilegeLogs = await PrivilegeLog.findAll({
+      where: { createdby: user_id },
+      order: [["createdAt", "DESC"]],
+    });
+
+    //aktivitas di  rolelog
+    const roleLogs = await RoleLog.findAll({
+      where: { createdby: user_id },
+      order: [["createdAt", "DESC"]],
+    });
+
+    //aktivitas di  talentlog
+    const talentLogs = await TalentLog.findAll({
+      where: { createdby: user_id },
+      order: [["createdAt", "DESC"]],
+    });
+
+    //aktivitas di  talent category log
+    const talentcategoryLogs = await TalentCategoryLog.findAll({
+      where: { createdby: user_id },
+      order: [["createdAt", "DESC"]],
+    });
+
+    //aktivitas di  talent status log
+    const talentstatusLogs = await TalentStatusLog.findAll({
+      where: { createdby: user_id },
+      order: [["createdAt", "DESC"]],
+    });
+
+    //aktivitas di  talent porto log
+    const talentportofolioLogs = await TalentPortofolioLog.findAll({
+      where: { createdby: user_id },
+      order: [["createdAt", "DESC"]],
+    });
+
+     //aktivitas di  talent work history
+     const talentworkhistoryLogs = await TalentWorkHistoryLog.findAll({
+      where: { createdby: user_id },
+      order: [["createdAt", "DESC"]],
+    });
+
+     //aktivitas di  talent work proof
+     const talentworkproofLogs = await TalentWorkProofLog.findAll({
+      where: { createdby: user_id },
+      order: [["createdAt", "DESC"]],
+    });
+
+
+    const formattedUserLogs = logs.map((log) => ({
+      created_at: log.createdAt,
+      // user: log.user ? log.user.fullname : "Unknown",
+      ip: log.ip || "-",
+      changes: log.changes,
+    }));
+
+    const formattedClientLogs = clientLogs.map((log) => ({
+      type: "client", // buat pembeda
+      created_at: log.createdAt,
+      // user: log.user ? log.user.fullname : "Unknown",
+      ip: log.ip || "-",
+      changes: log.changes,
+      pk: log.client_id
+    }));
+
+    const formattedPrivilegeLogs = privilegeLogs.map((log) => ({
+      type: "privilege", // buat pembeda
+      created_at: log.createdAt,
+      // user: log.user ? log.user.fullname : "Unknown",
+      ip: log.ip || "-",
+      changes: log.changes,
+      pk: log.privilege_id
+    }));
+
+    const formattedRoleLogs = roleLogs.map((log) => ({
+      type: "role", // buat pembeda
+      created_at: log.createdAt,
+      // user: log.user ? log.user.fullname : "Unknown",
+      ip: log.ip || "-",
+      changes: log.changes,
+      pk: log.role_id
+    }));
+
+    const formattedTalentLogs = talentLogs.map((log) => ({
+      type: "talent", // buat pembeda
+      created_at: log.createdAt,
+      // user: log.user ? log.user.fullname : "Unknown",
+      ip: log.ip || "-",
+      changes: log.changes,
+      pk: log.talent_id
+    }));
+
+    const formattedTalentCategoryLogs = talentcategoryLogs.map((log) => ({
+      type: "talent category", // buat pembeda
+      created_at: log.createdAt,
+      // user: log.user ? log.user.fullname : "Unknown",
+      ip: log.ip || "-",
+      changes: log.changes,
+      pk: log.talent_category_id
+    }));
+
+    const formattedTalentStatusLogs = talentstatusLogs.map((log) => ({
+      type: "talent status", // buat pembeda
+      created_at: log.createdAt,
+      // user: log.user ? log.user.fullname : "Unknown",
+      ip: log.ip || "-",
+      changes: log.changes,
+      pk: log.talent_status_id
+    }));
+
+    const formattedTalentPortofolioLogs = talentportofolioLogs.map((log) => ({
+      type: "talent portofolio", // buat pembeda
+      created_at: log.createdAt,
+      // user: log.user ? log.user.fullname : "Unknown",
+      ip: log.ip || "-",
+      changes: log.changes,
+      pk: log.talent_portofolio_id
+    }));
+
+    const formattedTalentWorkHistoryLogs = talentworkhistoryLogs.map((log) => ({
+      type: "talent status", // buat pembeda
+      created_at: log.createdAt,
+      // user: log.user ? log.user.fullname : "Unknown",
+      ip: log.ip || "-",
+      changes: log.changes,
+      pk: log.talent_work_history_id
+    }));
+
+    const formattedTalentWorkProofLogs = talentworkproofLogs.map((log) => ({
+      type: "talent status", // buat pembeda
+      created_at: log.createdAt,
+      // user: log.user ? log.user.fullname : "Unknown",
+      ip: log.ip || "-",
+      changes: log.changes,
+      pk: log.talent_work_proof_id
+    }));
+
+
+    const combinedLogs = [...formattedUserLogs, ...formattedClientLogs, ...formattedPrivilegeLogs, ...formattedRoleLogs, ...formattedTalentLogs, ...formattedTalentCategoryLogs, ...formattedTalentStatusLogs, ...formattedTalentPortofolioLogs, ...formattedTalentWorkHistoryLogs, ...formattedTalentWorkProofLogs].sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
+
+    res.json(combinedLogs);
+  } catch (error) {
+    console.error("Error fetching user logs:", error.message, error.stack);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };

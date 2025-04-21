@@ -7,7 +7,7 @@ import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
 
-const UsersList = () => {
+const ItUserList = () => {
     useAuthRedirect(3);
     const [users, setUsers] = useState([]);
     const [search, setSearch] = useState("");
@@ -184,4 +184,4 @@ const UsersList = () => {
     );
 };
 
-export default UsersList;
+export default ItUserList;

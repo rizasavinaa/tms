@@ -8,7 +8,10 @@ import {
     deleteUser,
     verifyResetToken,
     updatePassUser,
-    resetPassword
+    resetPassword,
+    getUserLog,
+    getUserLogDataChanges,
+    getUserLogActivity
 } from "../controllers/UserController.js";
 
 import {
@@ -29,6 +32,9 @@ router.patch('/users/:id', updateUser);
 router.put('/users/:id', updateUser);
 router.delete('/users/:id', deleteUser);
 router.post('/user-reset-password/:id', resetPassword);
+router.get("/user-log", getUserLog);
+router.get("/user-logdc", getUserLogDataChanges);
+router.get("/user-logac", getUserLogActivity);
 
 router.get("/roles", getRoles);
 router.get("/roles/:id", getRoleById);

@@ -43,7 +43,7 @@ export const Login = async (req, res) => {
     await UserLog.create({
       user_id: user.id,
       changes: "Login",
-      ip_address: requestIp.getClientIp(req), // Ambil IP user
+      ip: requestIp.getClientIp(req), // Ambil IP user
       createdBy: user.id,
     });
 
@@ -80,7 +80,7 @@ export const logOut = async (req, res) => {
       await UserLog.create({
         user_id: userId,
         changes: "Logout",
-        ip_address: requestIp.getClientIp(req),
+        ip: requestIp.getClientIp(req),
         createdBy: userId,
       });
   

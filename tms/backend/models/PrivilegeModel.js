@@ -2,7 +2,7 @@ import { DataTypes } from "sequelize";
 import db from "../config/Database.js"; // Import konfigurasi database
 import User from "./UserModel.js"; // Import model User untuk createdby
 
-const Privilege = db.define("privileges", {
+const Privilege = db.define("privilege", {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
