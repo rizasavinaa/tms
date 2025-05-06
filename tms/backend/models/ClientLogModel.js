@@ -2,6 +2,7 @@ import {Sequelize} from "sequelize";
 import db from "../config/Database.js";
 import Client from "./ClientModel.js";
 import { defaultValueSchemable } from "sequelize/lib/utils";
+import User from "./UserModel.js";
 
 const {DataTypes} = Sequelize;
 
@@ -39,6 +40,9 @@ const ClientLog = db.define('client_log',{
     timestamps: true, // Masih mencatat timestamps
     updatedAt: false, // Hanya menyimpan createdAt
 });
+
+User.hasMany(ClientLog, { foreignKey: 'createdby' });
+ClientLog.belongsTo(User, { foreignKey: 'createdby' });
 
 Client.hasMany(ClientLog, {foreignKey: 'client_id'});
 ClientLog.belongsTo(Client,{foreignKey: 'client_id'});

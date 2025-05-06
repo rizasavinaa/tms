@@ -1,0 +1,127 @@
+import React, { useState } from "react";
+import axios from "axios";
+import Swal from "sweetalert2";
+import useAuthRedirect from "../features/authRedirect";
+import Sidebar from "./sidebarkaryawan";
+import Footer from "./footer";
+import Jsfunction from "./jsfunction";
+import { useNavigate, useParams } from "react-router-dom";
+
+const KaryawanPortoRegister = () => {
+    useAuthRedirect(17);
+    const { talentId } = useParams();
+    const navigate = useNavigate();
+    const [name, setName] = useState("");
+    const [description, setDescription] = useState("");
+    const [file, setFile] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("description", description);
+        formData.append("file", file);
+        formData.append("talent_id", talentId); // Ambil dari URL
+
+        try {
+            await axios.post(`${process.env.REACT_APP_API_URL}/portopks`, formData);
+            sessionStorage.setItem("successMessage", "Registrasi berhasil!");
+            navigate("/karyawan/porto-pk");
+            setTimeout(() => window.location.reload(), 100);
+        } catch (error) {
+            console.error("Registrasi gagal:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Registrasi Gagal",
+                text: error.response?.data?.message || "Terjadi kesalahan saat registrasi!",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <React.Fragment>
+            <Sidebar activeMenu={3} />
+            <main className="app-main">
+                <div className="app-content-header">
+                    <div className="container-fluid">
+                        <div className="row">
+                            <div className="col-sm-6"><h3 className="mb-0">Registrasi Portofolio</h3></div>
+                        </div>
+                        <div className="container mt-4">
+                            <div className="card p-4">
+                                <form onSubmit={handleSubmit} encType="multipart/form-data">
+                                    <div className="mb-3 row">
+                                        <label className="col-sm-3 col-form-label">Nama File</label>
+                                        <div className="col-sm-9 w-50">
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                value={name}
+                                                onChange={(e) => setName(e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mb-3 row">
+                                        <label className="col-sm-3 col-form-label">Deskripsi</label>
+                                        <div className="col-sm-9 w-50">
+                                            <textarea
+                                                className="form-control"
+                                                value={description}
+                                                onChange={(e) => setDescription(e.target.value)}
+                                                rows={3}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mb-3 row">
+                                        <label className="col-sm-3 col-form-label">Upload File (PDF/JPG)</label>
+                                        <div className="col-sm-9 w-50">
+                                            <input
+                                                type="file"
+                                                className="form-control"
+                                                accept=".pdf,.jpg,.jpeg,.png"
+                                                onChange={(e) => setFile(e.target.files[0])}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mb-3 row">
+                                        <div className="col-sm-3"></div>
+                                        <div className="col-sm-9 w-50">
+                                            <button type="submit" className="btn btn-success">Simpan</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="app-content">
+                    <div className="container-fluid">
+                        <div className="row">
+                            <div className="col-sm-12"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <Jsfunction />
+            <Footer />
+            {loading && (
+                <div className="overlay-loading">
+                    <div className="loading-content">
+                        <div className="spinner-border text-light mb-3"></div>
+                        <p>Memproses...</p>
+                    </div>
+                </div>
+            )}
+        </React.Fragment>
+    );
+};
+
+export default KaryawanPortoRegister;

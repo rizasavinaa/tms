@@ -11,6 +11,7 @@
     "axios": "^1.8.2",
     "bulma": "^1.0.3",
     "dangerously-set-inner-html": "^2.0.1",
+    "file-saver": "^2.0.5",
     "overlayscrollbars": "^2.11.1",
     "react": "^19.0.0",
     "react-apexcharts": "^1.7.0",
@@ -22,7 +23,8 @@
     "recharts": "^2.15.2",
     "sortablejs": "^1.15.6",
     "sweetalert2": "^11.17.2",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",

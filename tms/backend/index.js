@@ -3,8 +3,10 @@ import cors from "cors";
 import session from "express-session";
 import dontenv from "dotenv";
 import SequelizeStore from "connect-session-sequelize";
-import UserRoute from "./routes/UserRoute.js";
+import ItRoute from "./routes/ItRoute.js";
+import KaryawanRoute from "./routes/KaryawanRoute.js";
 import AuthRoute from "./routes/AuthRoute.js";
+import portofolio from "./routes/portofolio.js";
 import db from "./config/Database.js";
 
 dontenv.config();
@@ -35,8 +37,8 @@ app.use(cors({
     origin : "http://localhost:3000"
 }));
 app.use(express.json());
-app.use(UserRoute);
 app.use(AuthRoute);
-
+app.use(ItRoute);
+app.use(KaryawanRoute);
 
 app.listen(process.env.APP_PORT, ()=> console.log('Server up and running...'+new Date().toString()));

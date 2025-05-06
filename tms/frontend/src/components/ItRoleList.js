@@ -7,20 +7,20 @@ import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
 
-const ItUserList = () => {
-    useAuthRedirect(3);
-    const [users, setUsers] = useState([]);
+const ItRoleList = () => {
+    useAuthRedirect(5);
+    const [roles, setRoles] = useState([]);
     const [search, setSearch] = useState("");
-    const [filter, setFilter] = useState("email");
+    const [filter, setFilter] = useState("name");
     const [sortColumn, setSortColumn] = useState("id");
     const [sortOrder, setSortOrder] = useState("asc");
     const [currentPage, setCurrentPage] = useState(1);
-    const usersPerPage = 10;
+    const rolesPerPage = 10;
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/users`)
-            .then(response => setUsers(response.data))
-            .catch(error => console.error("Gagal mengambil data user:", error));
+        axios.get(`${process.env.REACT_APP_API_URL}/roles`)
+            .then(response => setRoles(response.data))
+            .catch(error => console.error("Gagal mengambil data role:", error));
 
         const successMessage = sessionStorage.getItem("successMessage");
         if (successMessage) {
@@ -35,73 +35,44 @@ const ItUserList = () => {
         setSortOrder(order);
     };
 
-    const filteredUsers = users.filter(user => {
-        if (filter === "email") return user.email.toLowerCase().includes(search.toLowerCase());
-        if (filter === "fullname") return user.fullname.toLowerCase().includes(search.toLowerCase());
-        if (filter === "role") return user.role && user.role.name.toLowerCase().includes(search.toLowerCase());
+    const filteredRoles = roles.filter(role => {
+        if (filter === "name") return role.name.toLowerCase().includes(search.toLowerCase());
+        if (filter === "description") return role.description.toLowerCase().includes(search.toLowerCase());
         return true;
     });
 
 
-    const sortedUsers = [...filteredUsers].sort((a, b) => {
+    const sortedRoles = [...filteredRoles].sort((a, b) => {
         let valueA = sortColumn === "role" ? (a.role ? a.role.name : "") : a[sortColumn];
         let valueB = sortColumn === "role" ? (b.role ? b.role.name : "") : b[sortColumn];
-
+    
+        if (typeof valueA === "string") valueA = valueA.toLowerCase();
+        if (typeof valueB === "string") valueB = valueB.toLowerCase();
+    
         if (valueA < valueB) return sortOrder === "asc" ? -1 : 1;
         if (valueA > valueB) return sortOrder === "asc" ? 1 : -1;
         return 0;
     });
+    
 
-    const indexOfLastUser = currentPage * usersPerPage;
-    const indexOfFirstUser = indexOfLastUser - usersPerPage;
-    const currentUsers = sortedUsers.slice(indexOfFirstUser, indexOfLastUser);
-
-    const toggleStatus = async (userId, currentStatus) => {
-        const newStatus = currentStatus === 1 ? 0 : 1;
-        const action = newStatus === 1 ? "mengaktifkan" : "menonaktifkan";
-
-        Swal.fire({
-            title: `Yakin ingin ${action} user ini?`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Ya, lanjutkan!",
-            cancelButtonText: "Batal",
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    await axios.patch(`${process.env.REACT_APP_API_URL}/users/${userId}`, {
-                        status: newStatus,
-                    });
-
-                    // Update state users tanpa perlu fetch ulang dari server
-                    setUsers(users.map(user =>
-                        user.id === userId ? { ...user, status: newStatus } : user
-                    ));
-
-                    Swal.fire("Berhasil!", `User berhasil ${action}.`, "success");
-                } catch (error) {
-                    Swal.fire("Gagal!", "Terjadi kesalahan saat mengubah status.", "error");
-                    console.error("Gagal mengubah status user:", error);
-                }
-            }
-        });
-    };
-
+    const indexOfLastRole = currentPage * rolesPerPage;
+    const indexOfFirstRole = indexOfLastRole - rolesPerPage;
+    const currentRoles = sortedRoles.slice(indexOfFirstRole, indexOfLastRole);
 
     return (
         <React.Fragment>
-            <Sidebar activeMenu={3} />
+            <Sidebar activeMenu={5} />
             <main className="app-main">
                 {/*begin::App Content Header*/}
                 <div className="app-content-header">
                     {/*begin::Container*/}
                     <div className="container-fluid">
                         <div className="row">
-                            <div className="col-sm-6"><h3 className="mb-0">Data User</h3></div>
+                            <div className="col-sm-6"><h3 className="mb-0">Data Role</h3></div>
                             <div className="col-sm-6">
                                 <ol className="breadcrumb float-sm-end">
                                     <li className="breadcrumb-item"><a href="#">Home</a></li>
-                                    <li className="breadcrumb-item active" aria-current="page">Data User</li>
+                                    <li className="breadcrumb-item active" aria-current="page">Data Role</li>
                                 </ol>
                             </div>
                         </div>
@@ -113,10 +84,13 @@ const ItUserList = () => {
                                     <div className="col-sm-12">
                                         <div className="d-flex mb-3">
                                             <div className="me-2" style={{ width: "20%" }}>
-                                                <select className="form-select form-select-sm" value={filter} onChange={e => setFilter(e.target.value)}>
-                                                    <option value="email">Email</option>
-                                                    <option value="fullname">Nama Panjang</option>
-                                                    <option value="role">Role</option>
+                                                <select
+                                                    className="form-select form-select-sm"
+                                                    value={filter}
+                                                    onChange={e => setFilter(e.target.value)}
+                                                >
+                                                    <option value="name">Nama Role</option>
+                                                    <option value="description">Deskripsi</option>
                                                 </select>
                                             </div>
                                             <div style={{ width: "80%" }}>
@@ -130,50 +104,33 @@ const ItUserList = () => {
                                                 <tr>
                                                     {[
                                                         { key: 'id', label: 'ID' },
-                                                        { key: 'email', label: 'Email' },
-                                                        { key: 'fullname', label: 'Nama Lengkap' },
-                                                        { key: 'role', label: 'Role' },
-                                                        { key: 'status', label: 'Status' },
-                                                        { key: 'last_login', label: 'Terakhir Login' }
+                                                        { key: 'name', label: 'Nama Role' },
+                                                        { key: 'description', label: 'Deskripsi' }
                                                     ].map(col => (
                                                         <th key={col.key} onClick={() => handleSort(col.key)} className="sortable" style={{ cursor: "pointer" }}>
                                                             {col.label} {sortColumn === col.key ? (sortOrder === "asc" ? "▲" : "▼") : ""}
                                                         </th>
                                                     ))}
-
                                                     <th>Aksi</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {currentUsers.map((user, index) => (
+                                                {currentRoles.map((role, index) => (
                                                     <tr key={index}>
-                                                        <td>{user.id}</td>
-                                                        <td>{user.email}</td>
-                                                        <td>{user.fullname}</td>
-                                                        <td>{user.role ? user.role.name : "Tidak ada role"}</td>
-                                                        <td>{user.status === 1 ? "Aktif" : "Nonaktif"}</td>
+                                                        <td>{role.id}</td>
+                                                        <td>{role.name}</td>
+                                                        <td>{role.description}</td>
                                                         <td>
-                                                            {user.last_login
-                                                                ? new Date(user.last_login).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })
-                                                                : "Belum login"}
-                                                        </td>
-                                                        <td>
-                                                            <Link to={`${user.id}`} className="btn btn-secondary btn-sm me-1">
+                                                            <Link to={`${role.id}`} className="btn btn-secondary btn-sm me-1">
                                                                 Lihat Detail
                                                             </Link>
-                                                            <button
-                                                                className={`btn btn-${user.status === 1 ? "danger" : "success"} btn-sm`}
-                                                                onClick={() => toggleStatus(user.id, user.status)}
-                                                            >
-                                                                {user.status === 1 ? "Nonaktifkan" : "Aktifkan"}
-                                                            </button>
                                                         </td>
                                                     </tr>
                                                 ))}
                                             </tbody>
                                         </table>
                                         <div className="pagination">
-                                            {[...Array(Math.ceil(filteredUsers.length / usersPerPage))].map((_, index) => (
+                                            {[...Array(Math.ceil(filteredRoles.length / rolesPerPage))].map((_, index) => (
                                                 <button key={index} className={`btn btn-sm ${currentPage === index + 1 ? "btn-primary" : "btn-light"}`} onClick={() => setCurrentPage(index + 1)}>
                                                     {index + 1}
                                                 </button>
@@ -192,4 +149,4 @@ const ItUserList = () => {
     );
 };
 
-export default ItUserList;
+export default ItRoleList;

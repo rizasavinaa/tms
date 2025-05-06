@@ -6,11 +6,11 @@ import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
-import LoadingPage from "../components/loading"; // Import halaman loading
+import LoadingPage from "./loading"; // Import halaman loading
 
-const Karyawanhome = () => {
+const KaryawanHome = () => {
  
-  const loading = useAuthRedirect(2); // ID privilege untuk halaman IT
+  const loading = useAuthRedirect(13); // ID privilege untuk halaman IT
 
   if (loading) return <LoadingPage />; // Pakai halaman loading
 
@@ -45,7 +45,7 @@ const Karyawanhome = () => {
               {/*begin::Row*/}
               <div className="row">
                 <div className="col-sm-12">
-                
+                 helo
                 </div>
               </div>
               {/*end::Row*/}
@@ -62,4 +62,4 @@ const Karyawanhome = () => {
   );
 };
 
-export default Karyawanhome;
+export default KaryawanHome;

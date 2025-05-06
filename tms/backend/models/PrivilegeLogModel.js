@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/Database.js"; 
 import Privilege from "./PrivilegeModel.js";
+import User from "./UserModel.js";
 
 const PrivilegeLog = sequelize.define('privilege_log', {
   id: {
@@ -30,6 +31,9 @@ const PrivilegeLog = sequelize.define('privilege_log', {
     timestamps: true, // Masih mencatat timestamps
     updatedAt: false // Hanya menyimpan createdAt
 });
+
+User.hasMany(PrivilegeLog, { foreignKey: 'createdby' });
+PrivilegeLog.belongsTo(User, { foreignKey: 'createdby' });
 
 Privilege.hasMany(PrivilegeLog, {foreignKey: 'privilege_id'});
 PrivilegeLog.belongsTo(Privilege,{foreignKey: 'privilege_id'});

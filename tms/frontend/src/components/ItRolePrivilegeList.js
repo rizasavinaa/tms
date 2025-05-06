@@ -7,20 +7,20 @@ import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
 
-const ItUserList = () => {
-    useAuthRedirect(3);
-    const [users, setUsers] = useState([]);
+const ItRolePrivilegeList = () => {
+    useAuthRedirect(7);
+    const [roleprivs, setRolePrivs] = useState([]);
     const [search, setSearch] = useState("");
-    const [filter, setFilter] = useState("email");
+    const [filter, setFilter] = useState("name");
     const [sortColumn, setSortColumn] = useState("id");
     const [sortOrder, setSortOrder] = useState("asc");
     const [currentPage, setCurrentPage] = useState(1);
-    const usersPerPage = 10;
+    const roleprivsPerPage = 10;
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/users`)
-            .then(response => setUsers(response.data))
-            .catch(error => console.error("Gagal mengambil data user:", error));
+        axios.get(`${process.env.REACT_APP_API_URL}/role-priv`)
+            .then(response => setRolePrivs(response.data))
+            .catch(error => console.error("Gagal mengambil data hak akses:", error));
 
         const successMessage = sessionStorage.getItem("successMessage");
         if (successMessage) {
@@ -35,73 +35,78 @@ const ItUserList = () => {
         setSortOrder(order);
     };
 
-    const filteredUsers = users.filter(user => {
-        if (filter === "email") return user.email.toLowerCase().includes(search.toLowerCase());
-        if (filter === "fullname") return user.fullname.toLowerCase().includes(search.toLowerCase());
-        if (filter === "role") return user.role && user.role.name.toLowerCase().includes(search.toLowerCase());
+    const filteredRolePrivs = roleprivs.filter(rolepriv => {
+        const keyword = search.toLowerCase();
+        if (filter === "name") return rolepriv.privilege?.name?.toLowerCase().includes(keyword);
+        if (filter === "description") return rolepriv.privilege?.description?.toLowerCase().includes(keyword);
+        if (filter === "role") return rolepriv.role?.name?.toLowerCase().includes(keyword);
         return true;
     });
 
 
-    const sortedUsers = [...filteredUsers].sort((a, b) => {
-        let valueA = sortColumn === "role" ? (a.role ? a.role.name : "") : a[sortColumn];
-        let valueB = sortColumn === "role" ? (b.role ? b.role.name : "") : b[sortColumn];
+    const sortedRolePrivs = [...filteredRolePrivs].sort((a, b) => {
+        let valueA, valueB;
+
+        if (sortColumn === "role") {
+            valueA = a.role?.name?.toLowerCase() || "";
+            valueB = b.role?.name?.toLowerCase() || "";
+        } else if (sortColumn === "name") {
+            valueA = a.privilege?.name?.toLowerCase() || "";
+            valueB = b.privilege?.name?.toLowerCase() || "";
+        } else {
+            valueA = a[sortColumn];
+            valueB = b[sortColumn];
+        }
 
         if (valueA < valueB) return sortOrder === "asc" ? -1 : 1;
         if (valueA > valueB) return sortOrder === "asc" ? 1 : -1;
         return 0;
     });
 
-    const indexOfLastUser = currentPage * usersPerPage;
-    const indexOfFirstUser = indexOfLastUser - usersPerPage;
-    const currentUsers = sortedUsers.slice(indexOfFirstUser, indexOfLastUser);
 
-    const toggleStatus = async (userId, currentStatus) => {
-        const newStatus = currentStatus === 1 ? 0 : 1;
-        const action = newStatus === 1 ? "mengaktifkan" : "menonaktifkan";
+    const indexOfLastRolePriv = currentPage * roleprivsPerPage;
+    const indexOfFirstRolePriv = indexOfLastRolePriv - roleprivsPerPage;
+    const currentRolePrivs = sortedRolePrivs.slice(indexOfFirstRolePriv, indexOfLastRolePriv);
 
+    const deleteRolePriv = async (roleprivId) => {
         Swal.fire({
-            title: `Yakin ingin ${action} user ini?`,
+            title: "Yakin ingin menghapus hak akses ini?",
+            text: "Tindakan ini tidak dapat dibatalkan!",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Ya, lanjutkan!",
+            confirmButtonText: "Ya, hapus!",
             cancelButtonText: "Batal",
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await axios.patch(`${process.env.REACT_APP_API_URL}/users/${userId}`, {
-                        status: newStatus,
-                    });
+                    await axios.delete(`${process.env.REACT_APP_API_URL}/role-priv/${roleprivId}`);
 
-                    // Update state users tanpa perlu fetch ulang dari server
-                    setUsers(users.map(user =>
-                        user.id === userId ? { ...user, status: newStatus } : user
-                    ));
+                    // Update state roleprivs tanpa fetch ulang
+                    setRolePrivs(roleprivs.filter(rolepriv => rolepriv.id !== roleprivId));
 
-                    Swal.fire("Berhasil!", `User berhasil ${action}.`, "success");
+                    Swal.fire("Berhasil!", "Hak Akses berhasil dihapus.", "success");
                 } catch (error) {
-                    Swal.fire("Gagal!", "Terjadi kesalahan saat mengubah status.", "error");
-                    console.error("Gagal mengubah status user:", error);
+                    Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus hak akses.", "error");
+                    console.error("Gagal menghapus rolepriv:", error);
                 }
             }
         });
     };
 
-
     return (
         <React.Fragment>
-            <Sidebar activeMenu={3} />
+            <Sidebar activeMenu={7} />
             <main className="app-main">
                 {/*begin::App Content Header*/}
                 <div className="app-content-header">
                     {/*begin::Container*/}
                     <div className="container-fluid">
                         <div className="row">
-                            <div className="col-sm-6"><h3 className="mb-0">Data User</h3></div>
+                            <div className="col-sm-6"><h3 className="mb-0">Data Hak Akses</h3></div>
                             <div className="col-sm-6">
                                 <ol className="breadcrumb float-sm-end">
                                     <li className="breadcrumb-item"><a href="#">Home</a></li>
-                                    <li className="breadcrumb-item active" aria-current="page">Data User</li>
+                                    <li className="breadcrumb-item active" aria-current="page">Data Hak Akses</li>
                                 </ol>
                             </div>
                         </div>
@@ -113,10 +118,14 @@ const ItUserList = () => {
                                     <div className="col-sm-12">
                                         <div className="d-flex mb-3">
                                             <div className="me-2" style={{ width: "20%" }}>
-                                                <select className="form-select form-select-sm" value={filter} onChange={e => setFilter(e.target.value)}>
-                                                    <option value="email">Email</option>
-                                                    <option value="fullname">Nama Panjang</option>
+                                                <select
+                                                    className="form-select form-select-sm"
+                                                    value={filter}
+                                                    onChange={e => setFilter(e.target.value)}
+                                                >
+                                                    <option value="id">ID</option>
                                                     <option value="role">Role</option>
+                                                    <option value="name">Hak Akses</option>
                                                 </select>
                                             </div>
                                             <div style={{ width: "80%" }}>
@@ -130,50 +139,34 @@ const ItUserList = () => {
                                                 <tr>
                                                     {[
                                                         { key: 'id', label: 'ID' },
-                                                        { key: 'email', label: 'Email' },
-                                                        { key: 'fullname', label: 'Nama Lengkap' },
                                                         { key: 'role', label: 'Role' },
-                                                        { key: 'status', label: 'Status' },
-                                                        { key: 'last_login', label: 'Terakhir Login' }
+                                                        { key: 'name', label: 'Hak Akses' }
                                                     ].map(col => (
                                                         <th key={col.key} onClick={() => handleSort(col.key)} className="sortable" style={{ cursor: "pointer" }}>
                                                             {col.label} {sortColumn === col.key ? (sortOrder === "asc" ? "▲" : "▼") : ""}
                                                         </th>
                                                     ))}
-
                                                     <th>Aksi</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {currentUsers.map((user, index) => (
+                                                {currentRolePrivs.map((rolepriv, index) => (
                                                     <tr key={index}>
-                                                        <td>{user.id}</td>
-                                                        <td>{user.email}</td>
-                                                        <td>{user.fullname}</td>
-                                                        <td>{user.role ? user.role.name : "Tidak ada role"}</td>
-                                                        <td>{user.status === 1 ? "Aktif" : "Nonaktif"}</td>
+                                                        <td>{rolepriv.id}</td>
+                                                        <td>{rolepriv.role.name}</td>
+                                                        <td>{rolepriv.privilege.name + " - " + rolepriv.privilege.description}</td>
                                                         <td>
-                                                            {user.last_login
-                                                                ? new Date(user.last_login).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })
-                                                                : "Belum login"}
-                                                        </td>
-                                                        <td>
-                                                            <Link to={`${user.id}`} className="btn btn-secondary btn-sm me-1">
-                                                                Lihat Detail
-                                                            </Link>
-                                                            <button
-                                                                className={`btn btn-${user.status === 1 ? "danger" : "success"} btn-sm`}
-                                                                onClick={() => toggleStatus(user.id, user.status)}
-                                                            >
-                                                                {user.status === 1 ? "Nonaktifkan" : "Aktifkan"}
+                                                            <button onClick={() => deleteRolePriv(rolepriv.id)} className="btn btn-danger btn-sm me-1">
+                                                                Delete
                                                             </button>
+
                                                         </td>
                                                     </tr>
                                                 ))}
                                             </tbody>
                                         </table>
                                         <div className="pagination">
-                                            {[...Array(Math.ceil(filteredUsers.length / usersPerPage))].map((_, index) => (
+                                            {[...Array(Math.ceil(filteredRolePrivs.length / roleprivsPerPage))].map((_, index) => (
                                                 <button key={index} className={`btn btn-sm ${currentPage === index + 1 ? "btn-primary" : "btn-light"}`} onClick={() => setCurrentPage(index + 1)}>
                                                     {index + 1}
                                                 </button>
@@ -190,6 +183,6 @@ const ItUserList = () => {
             <Footer />
         </React.Fragment>
     );
-};
+}
 
-export default ItUserList;
+export default ItRolePrivilegeList;

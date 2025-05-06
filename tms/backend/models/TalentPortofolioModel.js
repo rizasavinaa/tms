@@ -29,6 +29,7 @@ const TalentPortofolio = sequelize.define('talent_portofolio', {
       allowNull: false,
     },
   }, {
+    freezeTableName: true, 
     timestamps: true, // Sequelize will handle createdAt & updatedAt
   });
 

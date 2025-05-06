@@ -456,7 +456,7 @@ export const getUserLogDataChanges = async (req, res) => {
       include: [
         {
           model: User,
-          as: "creator",
+          
           attributes: ["fullname"],
         },
       ],
@@ -465,7 +465,7 @@ export const getUserLogDataChanges = async (req, res) => {
 
     const formattedLogs = logs.map((log) => ({
       created_at: log.createdAt,
-      user: log.creator ? log.creator.fullname : "Unknown",
+      user: log.user ? log.user.fullname : "Unknown",
       ip: log.ip,
       changes: log.changes,
     }));

@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
-import { useEffect, lazy } from "react";
+import { useLayoutEffect, lazy } from "react";
 import { useDispatch } from "react-redux";
 import { getMe } from "./features/authSlice";
 
@@ -16,9 +16,10 @@ import NoAccess from "./components/NoAccess";
 function App() {
   const dispatch = useDispatch();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     dispatch(getMe()); // Ambil data user saat aplikasi dibuka
-  }, [dispatch]);
+    //Jsfunction(); // Pastikan inisialisasi JS dilakukan sekali ketika halaman pertama kali di-load
+  }, [dispatch]); // Hanya dijalankan sekali pada mount (mirip dengan useEffect, tetapi lebih awal)
 
   return (
     <Router>

@@ -121,41 +121,41 @@ function Sidebarit({ activeMenu }){
                     </li>
                     </ul>
                 </li>
-                <li className="nav-item">
-                    <a href="#" className="nav-link">
+                <li className={`nav-item ${isOpen(5)||isOpen(6)}`}>
+                    <a href="/it/roles" className="nav-link">
                     <i className="nav-icon fa fa-solid fa-medal" />
                     <p>
                         Role
-                        <i className="nav-arrow bi bi-chevron-right" />
+                        <a href="#" className="nav-arrow bi bi-chevron-right" />
                     </p>
                     </a>
                     <ul className="nav nav-treeview">
                     <li className="nav-item">
-                        <a href="./index.html" className="nav-link active">
+                        <a href="/it/role-register" className={isActive(6)}>
                         <i className="nav-icon bi" />
                         <p>Registrasi Role</p>
                         </a>
                     </li>
                     </ul>
                 </li>
-                <li className="nav-item">
-                    <a href="#" className="nav-link">
+                <li className={`nav-item ${isOpen(7)||isOpen(8)}`}>
+                    <a href="/it/hak-akses" className="nav-link">
                     <i className="nav-icon fa fa-solid fa-door-open" />
                     <p>
                         Hak Akses
-                        <i className="nav-arrow bi bi-chevron-right" />
+                        <a href="#" className="nav-arrow bi bi-chevron-right" />
                     </p>
                     </a>
                     <ul className="nav nav-treeview">
                     <li className="nav-item">
-                        <a href="./index.html" className="nav-link active">
+                        <a href="/it/hak-akses-register" className={isActive(8)}>
                         <i className="nav-icon bi" />
                         <p>Registrasi Hak Akses</p>
                         </a>
                     </li>
                     </ul>
                 </li>
-                <li className="nav-item">
+                <li className={`nav-item ${isOpen(9)||isOpen(10)}`}>
                     <a href="#" className="nav-link">
                     <i className="nav-icon fa fa-solid fa-file" />
                     <p>
@@ -165,9 +165,9 @@ function Sidebarit({ activeMenu }){
                     </a>
                     <ul className="nav nav-treeview">
                     <li className="nav-item">
-                        <a href="./index.html" className="nav-link active">
+                        <a href="/it/laporan-aktivitas-user" className={isActive(10)}>
                         <i className="nav-icon bi" />
-                        <p>Riwayat Akses</p>
+                        <p>Aktivitas User</p>
                         </a>
                     </li>
                     </ul>

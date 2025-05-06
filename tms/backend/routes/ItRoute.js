@@ -19,8 +19,18 @@ import {
     getRoleById,
     createRole,
     updateRole,
-    deleteRole
+    deleteRole,
+    getRoleLog,
+    getRolePrivilege,
+    getAllRolePrivileges,
+    deleteRolePrivilege,
+    createRolePrivilege
 } from "../controllers/RoleController.js";
+
+import{
+ ReportUserActivity,
+ ExportUserActivity
+} from "../controllers/ItReportController.js"
 
 
 const router = express.Router();
@@ -41,9 +51,18 @@ router.get("/roles/:id", getRoleById);
 router.post("/roles", createRole);
 router.put("/roles/:id", updateRole);
 router.delete("/roles/:id", deleteRole);
+router.get("/role-log", getRoleLog);
+router.get("/role-access", getRolePrivilege);
+
+router.get("/role-priv", getAllRolePrivileges);
+router.delete("/role-priv/:id", deleteRolePrivilege);
+router.post("/role-priv", createRolePrivilege);
 
 router.get("/verify-reset-token", verifyResetToken);
 router.post("/reset-password", updatePassUser);
+
+router.get("/laporan-aktivitas-user", ReportUserActivity);
+router.get("/export-laporan-aktivitas-user", ExportUserActivity);
 
 router.get('/user-summary', async (req, res) => {
     try {

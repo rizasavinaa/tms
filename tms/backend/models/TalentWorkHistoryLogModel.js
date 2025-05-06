@@ -1,6 +1,7 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/Database.js"; 
 import TalentWorkHistory from "./TalentWorkHistoryModel.js";
+import User from "./UserModel.js";
 
 const TalentWorkHistoryLog = sequelize.define('talent_work_history_log', {
   id: {
@@ -30,6 +31,9 @@ const TalentWorkHistoryLog = sequelize.define('talent_work_history_log', {
     timestamps: true, // Masih mencatat timestamps
     updatedAt: false // Hanya menyimpan createdAt
 });
+
+User.hasMany(TalentWorkHistoryLog, { foreignKey: 'createdby' });
+TalentWorkHistoryLog.belongsTo(User, { foreignKey: 'createdby' });
 
 TalentWorkHistory.hasMany(TalentWorkHistoryLog, {foreignKey: 'talent_work_history_id'});
 TalentWorkHistoryLog.belongsTo(TalentWorkHistory,{foreignKey: 'talent_work_history_id'});

@@ -43,7 +43,10 @@ const UserLog = db.define('user_log',{
 User.hasMany(UserLog, {foreignKey: 'user_id'});
 UserLog.belongsTo(User,{foreignKey: 'user_id'});
 
-User.hasMany(UserLog, { foreignKey: 'createdBy', as: 'createdLogs' });
-UserLog.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
+// User.hasMany(UserLog, { foreignKey: 'createdBy', as: 'createdLogs' });
+// UserLog.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
+
+User.hasMany(UserLog, { foreignKey: 'createdBy'});
+UserLog.belongsTo(User, { foreignKey: 'createdBy'});
 
 export default UserLog;
