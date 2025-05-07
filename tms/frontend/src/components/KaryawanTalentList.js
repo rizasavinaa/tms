@@ -5,7 +5,7 @@ import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { useNavigate } from "react-router-dom";
 
-const KaryawanPortoPreRegister = () => {
+const KaryawanTalentList = () => {
   const [talents, setTalents] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("name");
@@ -56,17 +56,9 @@ const KaryawanPortoPreRegister = () => {
   const indexOfFirstTalent = indexOfLastTalent - talentsPerPage;
   const currentTalents = sortedTalents.slice(indexOfFirstTalent, indexOfLastTalent);
 
-  const formatRupiah = (amount) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   return (
     <>
-      <Sidebar activeMenu={3} />
+      <Sidebar activeMenu={5} />
       <main className="app-main">
         <div className="app-content-header">
           <div className="container-fluid">
@@ -75,7 +67,7 @@ const KaryawanPortoPreRegister = () => {
               <div className="col-sm-6">
                 <ol className="breadcrumb float-sm-end">
                   <li className="breadcrumb-item"><a href="#">Home</a></li>
-                  <li className="breadcrumb-item active">Register Portofolio Talent</li>
+                  <li className="breadcrumb-item active">Talent</li>
                 </ol>
               </div>
             </div>
@@ -130,7 +122,7 @@ const KaryawanPortoPreRegister = () => {
                             <td>{talent.name}</td>
                             <td>{talent.talent_category?.name || "-"}</td>
                             <td>{talent.talent_status?.name || "-"}</td>
-                            <td>{formatRupiah(talent.last_salary)}</td>
+                            <td>{talent.last_salary}</td>
                             <td>
                               <button
                                 className="btn btn-primary btn-sm"
@@ -167,4 +159,4 @@ const KaryawanPortoPreRegister = () => {
   );
 };
 
-export default KaryawanPortoPreRegister;
+export default KaryawanTalentList;

@@ -63,7 +63,6 @@ export const createRole = async (req, res) => {
     }
 };
 
-
 // 🔹 Update Role + Log
 export const updateRole = async (req, res) => {
     const transaction = await sequelize.transaction();
@@ -103,27 +102,6 @@ export const updateRole = async (req, res) => {
         await transaction.commit();
 
         res.json({ message: "Role berhasil diperbarui", data: updatedFields });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-// 🔹 Delete Role
-export const deleteRole = async (req, res) => {
-    try {
-        const role = await Role.findByPk(req.params.id);
-        if (!role) return res.status(404).json({ message: "Role tidak ditemukan" });
-
-        await role.destroy();
-
-        // Log penghapusan
-        await RoleLog.create({
-            role_id: role.id,
-            changes: `Role dihapus`,
-            createdBy: req.body.createdBy || role.createdBy
-        });
-
-        res.json({ message: "Role berhasil dihapus" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -279,6 +257,27 @@ export const createRolePrivilege = async (req, res) => {
         await createTransaction.rollback();
         console.error("Create Role Privilege Error:", error);
         res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+};
+
+// 🔹 Delete Role
+export const deleteRole = async (req, res) => {
+    try {
+        const role = await Role.findByPk(req.params.id);
+        if (!role) return res.status(404).json({ message: "Role tidak ditemukan" });
+
+        await role.destroy();
+
+        // Log penghapusan
+        await RoleLog.create({
+            role_id: role.id,
+            changes: `Role dihapus`,
+            createdBy: req.body.createdBy || role.createdBy
+        });
+
+        res.json({ message: "Role berhasil dihapus" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
 

@@ -158,9 +158,9 @@ const ItUserList = () => {
                                                                 : "Belum login"}
                                                         </td>
                                                         <td>
-                                                            <Link to={`${user.id}`} className="btn btn-secondary btn-sm me-1">
+                                                            <a href={`/it/users/${user.id}`} className="btn btn-secondary btn-sm me-1">
                                                                 Lihat Detail
-                                                            </Link>
+                                                            </a>
                                                             <button
                                                                 className={`btn btn-${user.status === 1 ? "danger" : "success"} btn-sm`}
                                                                 onClick={() => toggleStatus(user.id, user.status)}

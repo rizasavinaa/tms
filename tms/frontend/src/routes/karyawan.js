@@ -9,7 +9,8 @@ const KaryawanPosisiDetail = lazy(() => import("../components/KaryawanPosisiDeta
 const KaryawanPosisiRegister = lazy(() => import("../components/KaryawanPosisiRegister"));
 const KaryawanPortoPreRegister = lazy(() => import("../components/KaryawanPortoPreRegister"));
 const KaryawanPortoRegister = lazy(() => import("../components/KaryawanPortoRegister"));
-
+const KaryawanPortoList = lazy(() => import("../components/KaryawanPortoList"));
+const KaryawanPortoDetail = lazy(() => import("../components/KaryawanPortoDetail"));
 const KaryawanRoutes = () => {
   return (
     <Suspense fallback={<Loading />}>
@@ -20,6 +21,8 @@ const KaryawanRoutes = () => {
         <Route path="/posisi-pk-register" element={<KaryawanPosisiRegister />} />
         <Route path="/porto-preregister" element={<KaryawanPortoPreRegister />} />
         <Route path="/porto-register/:talentId" element={<KaryawanPortoRegister />} />
+        <Route path="/porto-pk" element={<KaryawanPortoList />} />
+        <Route path="/porto-pk/:id" element={<KaryawanPortoDetail />} />
         <Route path="*" element={<NotFound />} /> {/* Tambahkan ini */}
       </Routes>
     </Suspense>

@@ -20,6 +20,14 @@ const TalentPortofolio = sequelize.define('talent_portofolio', {
       type: DataTypes.STRING(255),
       allowNull: false,
     },
+    public_id: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    resource_type: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
     talent_id: {
       type: DataTypes.INTEGER,
       allowNull: false,

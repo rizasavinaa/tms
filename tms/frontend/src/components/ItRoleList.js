@@ -121,9 +121,9 @@ const ItRoleList = () => {
                                                         <td>{role.name}</td>
                                                         <td>{role.description}</td>
                                                         <td>
-                                                            <Link to={`${role.id}`} className="btn btn-secondary btn-sm me-1">
+                                                            <a href={`/it/roles/${role.id}`} className="btn btn-secondary btn-sm me-1">
                                                                 Lihat Detail
-                                                            </Link>
+                                                            </a>
                                                         </td>
                                                     </tr>
                                                 ))}

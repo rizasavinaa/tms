@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import useAuthRedirect from "../features/authRedirect";
@@ -11,10 +11,24 @@ const KaryawanPortoRegister = () => {
     useAuthRedirect(17);
     const { talentId } = useParams();
     const navigate = useNavigate();
+    const [talentName, setTalentName] = useState("");
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    // Ambil nama pekerja kreatif berdasarkan ID
+    useEffect(() => {
+        const fetchTalent = async () => {
+            try {
+                const response = await axios.get(`${process.env.REACT_APP_API_URL}/talents/${talentId}`);
+                setTalentName(response.data.name);
+            } catch (error) {
+                console.error("Gagal mengambil data talent:", error);
+            }
+        };
+        fetchTalent();
+    }, [talentId]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -54,6 +68,9 @@ const KaryawanPortoRegister = () => {
                         </div>
                         <div className="container mt-4">
                             <div className="card p-4">
+                                <div className="mb-3 row">
+                                    {talentName ? `Pekerja Kreatif - ${talentName}` : "Memuat..."}
+                                </div>
                                 <form onSubmit={handleSubmit} encType="multipart/form-data">
                                     <div className="mb-3 row">
                                         <label className="col-sm-3 col-form-label">Nama File</label>

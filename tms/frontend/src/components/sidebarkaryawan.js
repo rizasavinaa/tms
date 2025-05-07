@@ -27,9 +27,13 @@ function Sidebarkaryawan({ activeMenu }) {
             cancelButtonText: "Batal",
         }).then((result) => {
             if (result.isConfirmed) {
-                dispatch(LogOut());
-                dispatch(reset());
-                navigate("/");
+                dispatch(LogOut()).then(() => {
+                    dispatch(reset());
+                    sessionStorage.removeItem("redirectAfterLogin"); // Hapus redirect lama
+                    sessionStorage.removeItem("hasRedirected");
+                    navigate("/login", { replace: true }); // 🔥 hindari kembali ke state lama
+                });
+
             }
         });
     };
@@ -44,6 +48,13 @@ function Sidebarkaryawan({ activeMenu }) {
                 {/*begin::Container*/}
                 <div className="container-fluid">
                     {/*begin::Start Navbar Links*/}
+                    <ul className="navbar-nav">
+                        <li className="nav-item">
+                            <a className="nav-link" data-lte-toggle="sidebar" href="#" role="button">
+                                <i className="bi bi-list" />
+                            </a>
+                        </li>
+                    </ul>
                     <ul className="navbar-nav ms-auto">
                         {/*begin::Fullscreen Toggle*/}
                         <li className="nav-item">
@@ -113,7 +124,7 @@ function Sidebarkaryawan({ activeMenu }) {
                                         </a>
                                     </li>
                                     <li className="nav-item">
-                                        <a href="/karyawan/porto-preregister" className={isActive(3)}>
+                                        <a href="/karyawan/porto-pk" className={isActive(3)}>
                                             <i className="nav-icon bi" />
                                             <p>Portofolio</p>
                                         </a>

@@ -67,11 +67,11 @@ const KaryawanPosisiList = () => {
                     {/*begin::Container*/}
                     <div className="container-fluid">
                         <div className="row">
-                            <div className="col-sm-6"><h3 className="mb-0">Data Posisi Karyawan</h3></div>
+                            <div className="col-sm-6"><h3 className="mb-0">Data Posisi Pekerja Kreatif</h3></div>
                             <div className="col-sm-6">
                                 <ol className="breadcrumb float-sm-end">
                                     <li className="breadcrumb-item"><a href="#">Home</a></li>
-                                    <li className="breadcrumb-item active" aria-current="page">Data Posisi Karyawan</li>
+                                    <li className="breadcrumb-item active" aria-current="page">Data Posisi Pekerja Kreatif</li>
                                 </ol>
                             </div>
                         </div>
@@ -121,9 +121,9 @@ const KaryawanPosisiList = () => {
                                                         <td>{posisipk.name}</td>
                                                         <td>{posisipk.description}</td>
                                                         <td>
-                                                            <Link to={`${posisipk.id}`} className="btn btn-secondary btn-sm me-1">
+                                                            <a href={`/karyawan/posisi-pk/${posisipk.id}`} className="btn btn-secondary btn-sm me-1">
                                                                 Lihat Detail
-                                                            </Link>
+                                                            </a>
 
                                                         </td>
                                                     </tr>
