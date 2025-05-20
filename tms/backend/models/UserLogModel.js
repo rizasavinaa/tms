@@ -23,7 +23,7 @@ const UserLog = db.define('user_log',{
         allowNull: false,
         defaultValue: ""
     },
-    createdBy:{
+    createdby:{
         type: DataTypes.INTEGER,
         allowNull: false,
         validate:{
@@ -43,10 +43,10 @@ const UserLog = db.define('user_log',{
 User.hasMany(UserLog, {foreignKey: 'user_id'});
 UserLog.belongsTo(User,{foreignKey: 'user_id'});
 
-// User.hasMany(UserLog, { foreignKey: 'createdBy', as: 'createdLogs' });
-// UserLog.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
+// User.hasMany(UserLog, { foreignKey: 'createdby', as: 'createdLogs' });
+// UserLog.belongsTo(User, { foreignKey: 'createdby', as: 'creator' });
 
-User.hasMany(UserLog, { foreignKey: 'createdBy'});
-UserLog.belongsTo(User, { foreignKey: 'createdBy'});
+User.hasMany(UserLog, { foreignKey: 'createdby'});
+UserLog.belongsTo(User, { foreignKey: 'createdby'});
 
 export default UserLog;

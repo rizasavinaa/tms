@@ -5,7 +5,7 @@ import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 
 const Pekerjakreatifhome = () => {
-  useAuthRedirect(3);
+  useAuthRedirect(18);
   return (
       <React.Fragment>
         <Sidebar/>

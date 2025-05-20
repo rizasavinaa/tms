@@ -18,6 +18,8 @@ import { Op, Sequelize } from "sequelize";
 import sequelize from "../config/Database.js";
 import PasswordReset from "../models/PasswordResetModel.js";
 import requestIp from "request-ip";
+import Talent from "../models/TalentModel.js";
+import crypto from "crypto";
 
 dotenv.config();
 
@@ -56,14 +58,90 @@ export const getUserById = async (req, res) => {
   }
 };
 
+// 🔹 Fungsi reusable untuk buat user + kirim email
+export const createUserInternal = async ({ email, fullname, role_id, createdby, ip = "", transaction }) => {
+  const existing = await User.findOne({ where: { email }, transaction });
+  if (existing) throw new Error("Email sudah digunakan.");
+
+  // 1. Buat user
+  const newUser = await User.create({
+    email,
+    fullname,
+    role_id,
+    createdby,
+    status : 1,
+  }, { transaction });
+
+  // 2. Buat token reset password
+  const resetToken = jwt.sign(
+    { userId: newUser.id, email: newUser.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 jam dari sekarang
+
+  // 3. Simpan token di tabel PasswordReset
+  await PasswordReset.destroy({
+    where: { user_id: newUser.id },
+    transaction,
+  });
+
+  await PasswordReset.create({
+    user_id: newUser.id,
+    token: resetToken,
+    expires_at: expiresAt
+  }, { transaction });
+
+  // 4. Catat log pembuatan user
+  await UserLog.create({
+    user_id: newUser.id,
+    changes: JSON.stringify({
+      action: "User Created",
+      fields: ["email", "fullname", "role_id"],
+      values: { email, fullname, role_id },
+    }),
+    createdby: createdby,
+    ip,
+  }, { transaction });
+
+  // 5. Kirim email reset password
+  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+  try {
+    await sendWelcomeEmail(email, resetLink);
+  } catch (emailError) {
+    console.error("🔥 Gagal kirim email:", emailError);
+    // Tidak dilempar agar tidak membatalkan transaksi, cukup log
+  }
+
+  return newUser;
+};
+
+// 🔹 API POST /users
+// export const createUser = async (req, res) => {
+//   const t = await sequelize.transaction();
+//   try {
+//     const { email, fullname, role_id } = req.body;
+//     const createdby = req.session.userId;
+//     const ip = requestIp.getClientIp(req);
+
+//     const newUser = await createUserInternal({ email, fullname, role_id, createdby, ip, transaction: t });
+
+//     await t.commit();
+//     res.status(201).json({ message: "User berhasil dibuat", user: newUser });
+//   } catch (error) {
+//     await t.rollback();
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
 export const createUser = async (req, res) => {
   console.log("🚀 Request body yang diterima:", req.body); // ✅ Cek apakah emailPassword "ya"
 
   const createUserTransaction = await sequelize.transaction();
   const resetPasswordTransaction = await sequelize.transaction();
   try {
-    const createdBy = req.session.userId;
-    if (!createdBy) {
+    const createdby = req.session.userId;
+    if (!createdby) {
       return res.status(401).json({ message: "Unauthorized: No user session" });
     }
 
@@ -73,7 +151,7 @@ export const createUser = async (req, res) => {
     }
 
     console.log("📩 Membuat user baru...");
-    const userData = { ...req.body, createdBy };
+    const userData = { ...req.body, createdby };
     const newUser = await User.create(userData, { transaction: createUserTransaction });
 
     console.log("📝 Menyimpan log...");
@@ -84,7 +162,7 @@ export const createUser = async (req, res) => {
         fields: Object.keys(req.body),
         values: req.body,
       }),
-      createdBy,
+      createdby,
       ip: requestIp.getClientIp(req)
     }, { transaction: createUserTransaction });
 
@@ -199,9 +277,9 @@ export const updateUser = async (req, res) => {
 
   try {
     const userId = req.params.id;
-    const createdBy = req.session.userId;
+    const createdby = req.session.userId;
 
-    if (!createdBy) {
+    if (!createdby) {
       return res.status(401).json({ message: "Unauthorized: No user session" });
     }
 
@@ -232,11 +310,41 @@ export const updateUser = async (req, res) => {
             oldValues,           // ✅ nilai lama
             newValues: updatedFields, // ✅ nilai baru
           }),
-          createdBy,
+          createdby,
           ip: requestIp.getClientIp(req),
         },
         { transaction }
       );
+    }
+
+    const fieldsToSync = { name: updatedFields.fullname, email: updatedFields.email };
+    const syncTalentFields = {};
+    const syncOldValues = {};
+
+    const talent = await Talent.findOne({ where: { user_id: userId }, transaction });
+    if (talent) {
+      Object.entries(fieldsToSync).forEach(([talentKey, newVal]) => {
+        if (newVal !== undefined && talent[talentKey] !== newVal) {
+          syncOldValues[talentKey] = talent[talentKey];
+          syncTalentFields[talentKey] = newVal;
+        }
+      });
+
+      if (Object.keys(syncTalentFields).length > 0) {
+        await talent.update(syncTalentFields, { transaction });
+
+        await TalentLog.create({
+          talent_id: talent.id,
+          changes: JSON.stringify({
+            action: "Talent Updated via User Update",
+            fields: Object.keys(syncTalentFields),
+            oldValues: syncOldValues,
+            newValues: syncTalentFields,
+          }),
+          createdby: createdby,
+          ip: requestIp.getClientIp(req),
+        }, { transaction });
+      }
     }
 
     await transaction.commit();
@@ -255,8 +363,8 @@ export const deleteUser = async (req, res) => {
 
   try {
     const userId = req.params.id;
-    const createdBy = req.session.userId;
-    if (!createdBy) {
+    const createdby = req.session.userId;
+    if (!createdby) {
       return res.status(401).json({ message: "Unauthorized: No user session" });
     }
 
@@ -271,7 +379,7 @@ export const deleteUser = async (req, res) => {
         action: "User Deleted",
         values: user.toJSON(), // Simpan semua data sebelum dihapus
       },
-      createdBy,
+      createdby,
       ip: requestIp.getClientIp(req)
     }, { transaction });
 
@@ -456,7 +564,7 @@ export const getUserLogDataChanges = async (req, res) => {
       include: [
         {
           model: User,
-          
+
           attributes: ["fullname"],
         },
       ],
@@ -544,14 +652,14 @@ export const getUserLogActivity = async (req, res) => {
       order: [["createdAt", "DESC"]],
     });
 
-     //aktivitas di  talent work history
-     const talentworkhistoryLogs = await TalentWorkHistoryLog.findAll({
+    //aktivitas di  talent work history
+    const talentworkhistoryLogs = await TalentWorkHistoryLog.findAll({
       where: { createdby: user_id },
       order: [["createdAt", "DESC"]],
     });
 
-     //aktivitas di  talent work proof
-     const talentworkproofLogs = await TalentWorkProofLog.findAll({
+    //aktivitas di  talent work proof
+    const talentworkproofLogs = await TalentWorkProofLog.findAll({
       where: { createdby: user_id },
       order: [["createdAt", "DESC"]],
     });
@@ -654,5 +762,22 @@ export const getUserLogActivity = async (req, res) => {
   } catch (error) {
     console.error("Error fetching user logs:", error.message, error.stack);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const checkEmailAvailability = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const existingUser = await User.findOne({ where: { email } });
+
+    if (existingUser) {
+      return res.json({ available: false });
+    }
+
+    return res.json({ available: true });
+  } catch (error) {
+    console.error("Error checking email:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

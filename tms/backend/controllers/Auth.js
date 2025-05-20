@@ -44,7 +44,7 @@ export const Login = async (req, res) => {
       user_id: user.id,
       changes: "Login",
       ip: requestIp.getClientIp(req), // Ambil IP user
-      createdBy: user.id,
+      createdby: user.id,
     });
 
 };
@@ -81,7 +81,7 @@ export const logOut = async (req, res) => {
         user_id: userId,
         changes: "Logout",
         ip: requestIp.getClientIp(req),
-        createdBy: userId,
+        createdby: userId,
       });
   
       // 🔹 Hapus sesi

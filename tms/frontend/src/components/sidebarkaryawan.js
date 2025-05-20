@@ -109,7 +109,7 @@ function Sidebarkaryawan({ activeMenu }) {
                         {/*begin::Sidebar Menu*/}
                         <ul className="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
                             <li className={`nav-item ${isOpen(1) || isOpen(2) || isOpen(3) || isOpen(4) || isOpen(5)}`}>
-                                <a href="#" className="nav-link">
+                                <a href="/karyawan/pk" className="nav-link">
                                     <i className="nav-icon fa fa-solid fa-users" />
                                     <p>
                                         Pekerja Kreatif
@@ -118,7 +118,7 @@ function Sidebarkaryawan({ activeMenu }) {
                                 </a>
                                 <ul className="nav nav-treeview">
                                     <li className="nav-item">
-                                        <a href="./index.html" className={isActive(2)}>
+                                        <a href="/karyawan/pk-register" className={isActive(2)}>
                                             <i className="nav-icon bi" />
                                             <p>Registrasi</p>
                                         </a>
@@ -143,8 +143,8 @@ function Sidebarkaryawan({ activeMenu }) {
                                     </li>
                                 </ul>
                             </li>
-                            <li className="nav-item">
-                                <a href="#" className="nav-link">
+                            <li className={`nav-item ${isOpen(6) || isOpen(7)}`}>
+                                <a href="/karyawan/klien" className="nav-link">
                                     <i className="nav-icon fa fa-solid fa-building" />
                                     <p>
                                         Perusahaan Klien
@@ -153,7 +153,7 @@ function Sidebarkaryawan({ activeMenu }) {
                                 </a>
                                 <ul className="nav nav-treeview">
                                     <li className="nav-item">
-                                        <a href="./index.html" className="nav-link">
+                                        <a href="/karyawan/klien-register" className={isActive(7)}>
                                             <i className="nav-icon bi" />
                                             <p>Registrasi</p>
                                         </a>

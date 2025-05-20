@@ -24,7 +24,7 @@ const ClientLog = db.define('client_log',{
         allowNull: false,
         defaultValue: ""
     },
-    createdBy:{
+    createdby:{
         type: DataTypes.INTEGER,
         allowNull: false,
         validate:{

@@ -104,7 +104,8 @@ const KaryawanPortoList = () => {
                                                     onChange={e => setFilter(e.target.value)}
                                                 >
                                                     <option value="id">ID</option>
-                                                    <option value="name">Nama</option>
+                                                    <option value="namepk">Nama Pekerja Kreatif</option>
+                                                    <option value="name">Nama File</option>
                                                     <option value="description">Deskripsi</option>
                                                 </select>
                                             </div>
@@ -132,6 +133,7 @@ const KaryawanPortoList = () => {
                                                     {[
                                                         { key: 'id', label: 'ID' },
                                                         { key: 'name', label: 'Nama Pekerja Kreatif' },
+                                                        { key: 'name', label: 'Nama File' },
                                                         { key: 'description', label: 'Deskripsi' },
                                                         { key: 'createdAt', label: 'Tanggal Upload' }
                                                     ].map(col => (
@@ -146,6 +148,7 @@ const KaryawanPortoList = () => {
                                                 {currentPortos.map(porto => (
                                                     <tr key={porto.id}>
                                                         <td>{porto.id}</td>
+                                                        <td>{porto.namepk}</td>
                                                         <td>{porto.name}</td>
                                                         <td>{porto.description}</td>
                                                         <td>{new Date(porto.createdAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}</td>

@@ -7,6 +7,7 @@ import { Sequelize } from "sequelize";
 import sequelize from "../config/Database.js";
 import User from "../models/UserModel.js";
 import fs from "fs";
+import Talent from "../models/TalentModel.js"; 
 
 const getResourceType = (mimetype) => {
     if (mimetype.startsWith("image/")) return "image";
@@ -36,7 +37,7 @@ export const createTalentPortofolio = async (req, res) => {
             resource_type: resourceType,
         });
 
-        const createdBy = req.session.userId;
+        const createdby = req.session.userId;
 
         // Simpan ke tabel portofolio termasuk public_id
         const portofolio = await TalentPortofolio.create({
@@ -46,13 +47,13 @@ export const createTalentPortofolio = async (req, res) => {
             public_id: result.public_id, // ← disimpan di DB
             resource_type: result.resource_type,
             talent_id,
-            createdby: createdBy,
+            createdby: createdby,
         }, { transaction });
 
         // Simpan log
         await TalentPortofolioLog.create({
             talent_portofolio_id: portofolio.id,
-            createdby: createdBy,
+            createdby: createdby,
             ip: requestIp.getClientIp(req),
             changes: JSON.stringify({
                 action: "Portofolio Created",
@@ -93,19 +94,37 @@ export const createTalentPortofolio = async (req, res) => {
     }
 };
 
-
 export const getTalentPortofolio = async (req, res) => {
     try {
         const portofolios = await TalentPortofolio.findAll({
             order: [['id', 'DESC']],
-            attributes: ['id', 'name', 'description', 'file_link', 'createdAt']
+            attributes: ['id', 'description', 'file_link', 'createdAt', 'name'],
+            include: [
+                {
+                    model: Talent,
+                    attributes: ["name"] // alias name sebagai namepk
+                }
+            ],
+            logging: console.log
         });
-        res.status(200).json(portofolios);
+
+        // Ubah hasil agar namepk sejajar dengan atribut utama
+        const result = portofolios.map(p => ({
+            id: p.id,
+            name : p.name,
+            description: p.description,
+            file_link: p.file_link,
+            createdAt: p.createdAt,
+            namepk: p.talent.name  // fallback kalau tidak ada Talent
+        }));
+
+        res.status(200).json(result);
     } catch (error) {
         console.error("Error getAllTalentPortofolio:", error);
         res.status(500).json({ message: "Gagal mengambil data portofolio" });
     }
 };
+
 
 export const getTalentPortofolioById = async (req, res) => {
     try {
@@ -123,6 +142,24 @@ export const getTalentPortofolioById = async (req, res) => {
         res.status(500).json({ message: "Gagal mengambil detail portofolio" });
     }
 };
+
+export const getTalentPortofolioByTalentId = async (req, res) => {
+    try {
+      const { talent_id } = req.params;
+  
+      const portofolios = await TalentPortofolio.findAll({
+        where: { talent_id },
+        order: [['id', 'DESC']],
+        attributes: ['id', 'name', 'description', 'file_link', 'createdAt']
+      });
+  
+      res.status(200).json(portofolios);
+    } catch (error) {
+      console.error("Error getTalentPortofolioByTalentId:", error);
+      res.status(500).json({ message: "Gagal mengambil portofolio berdasarkan talent_id" });
+    }
+  };
+  
 
 export const updateTalentPortofolioDescription = async (req, res) => {
     const transaction = await sequelize.transaction();

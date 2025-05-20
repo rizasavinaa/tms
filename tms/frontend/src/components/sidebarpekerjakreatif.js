@@ -45,41 +45,34 @@ function Sidebarpekerjakreatif() {
                                 <i className="bi bi-list" />
                             </a>
                         </li>
-                        {/* <li class="nav-item d-none d-md-block"><a href="#" class="nav-link">Home</a></li>
-        <li class="nav-item d-none d-md-block"><a href="#" class="nav-link">Contact</a></li> */}
                     </ul>
-                    {/*end::Start Navbar Links*/}
-                    {/*begin::End Navbar Links*/}
                     <ul className="navbar-nav ms-auto">
-                        {/*begin::Navbar Search*/}
-                        <li className="nav-item">
-                            <a className="nav-link" data-widget="navbar-search" href="#" role="button">
-                                <i className="bi bi-search" />
-                            </a>
-                        </li>
                         {/*begin::Fullscreen Toggle*/}
                         <li className="nav-item">
                             <a className="nav-link" href="#" data-lte-toggle="fullscreen">
                                 <i data-lte-icon="maximize" className="bi bi-arrows-fullscreen" />
-                                <i data-lte-icon="minimize" className="bi bi-fullscreen-exit" style={{ display: 'none' }} />
+                                <i data-lte-icon="minimize" className="bi bi-fullscreen-exit" style={{ display: "none" }} />
                             </a>
                         </li>
                         {/*end::Fullscreen Toggle*/}
-                        {/*begin::User Menu Dropdown*/}
-                        <li className="nav-item dropdown user-menu">
-                            <a href="#" className="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                                <span className="d-none d-md-inline">{reduxUser ? reduxUser.fullname : 'Loading...'}</span>
+
+                        {/*begin::Logout Icon*/}
+                        <li className="nav-item">
+                            <a className="nav-link text-danger" href="#" onClick={logout} title="Logout">
+                                <i className="bi bi-box-arrow-right"></i>
                             </a>
-                            <ul className="dropdown-menu">
-                                <li>
-                                    <a className="dropdown-item" href="#" onClick={logout}>
-                                        <i className="bi bi-box-arrow-right"></i> Logout
-                                    </a>
-                                </li>
-                            </ul>
                         </li>
-                        {/*end::User Menu Dropdown*/}
+                        {/*end::Logout Icon*/}
+
+                        {/*begin::User Name (Tanpa Dropdown)*/}
+                        <li className="nav-item">
+                            <span className="nav-link">Hi, {reduxUser ? reduxUser.fullname : "Loading..."}</span>
+                        </li>
+                        {/*end::User Name*/}
                     </ul>
+
+                    {/*end::End Navbar Links*/}
+
                     {/*end::End Navbar Links*/}
                 </div>
                 {/*end::Container*/}

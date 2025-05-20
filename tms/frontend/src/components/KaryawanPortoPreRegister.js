@@ -4,8 +4,10 @@ import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { useNavigate } from "react-router-dom";
+import useAuthRedirect from "../features/authRedirect";
 
 const KaryawanPortoPreRegister = () => {
+  useAuthRedirect(17);
   const [talents, setTalents] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("name");
@@ -38,11 +40,11 @@ const KaryawanPortoPreRegister = () => {
 
   const sortedTalents = [...filteredTalents].sort((a, b) => {
     let aValue = sortColumn === "category" ? a.talent_category?.name :
-                 sortColumn === "status" ? a.talent_status?.name :
-                 a[sortColumn];
+      sortColumn === "status" ? a.talent_status?.name :
+        a[sortColumn];
     let bValue = sortColumn === "category" ? b.talent_category?.name :
-                 sortColumn === "status" ? b.talent_status?.name :
-                 b[sortColumn];
+      sortColumn === "status" ? b.talent_status?.name :
+        b[sortColumn];
 
     if (typeof aValue === "string") aValue = aValue.toLowerCase();
     if (typeof bValue === "string") bValue = bValue.toLowerCase();
@@ -75,7 +77,7 @@ const KaryawanPortoPreRegister = () => {
               <div className="col-sm-6">
                 <ol className="breadcrumb float-sm-end">
                   <li className="breadcrumb-item"><a href="#">Home</a></li>
-                  <li className="breadcrumb-item active">Register Portofolio Talent</li>
+                  <li className="breadcrumb-item active">Register Portofolio Pekerja Kratif</li>
                 </ol>
               </div>
             </div>
@@ -110,7 +112,7 @@ const KaryawanPortoPreRegister = () => {
                           {[
                             { key: "id", label: "ID" },
                             { key: "email", label: "Email" },
-                            { key: "name", label: "Fullname" },
+                            { key: "name", label: "Nama" },
                             { key: "category", label: "Posisi" },
                             { key: "status", label: "Status" },
                             { key: "last_salary", label: "Gaji Terakhir" },
@@ -132,12 +134,12 @@ const KaryawanPortoPreRegister = () => {
                             <td>{talent.talent_status?.name || "-"}</td>
                             <td>{formatRupiah(talent.last_salary)}</td>
                             <td>
-                              <button
+                              <a
+                                href={`/karyawan/porto-register/${talent.id}`}
                                 className="btn btn-primary btn-sm"
-                                onClick={() => navigate(`/karyawan/porto-register/${talent.id}`)}
                               >
                                 Tambah Portofolio
-                              </button>
+                              </a>
                             </td>
                           </tr>
                         ))}

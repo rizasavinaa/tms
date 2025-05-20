@@ -19,7 +19,7 @@ const RoleLog = db.define("role_log", {
         type: DataTypes.TEXT,
         allowNull: false,
     },
-    createdBy: {
+    createdby: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
@@ -28,10 +28,10 @@ const RoleLog = db.define("role_log", {
     timestamps: true,  // createdAt & updatedAt otomatis
 });
 
-// RoleLog.belongsTo(User, { foreignKey: "createdBy", as: "creator" });
+// RoleLog.belongsTo(User, { foreignKey: "createdby", as: "creator" });
 
-User.hasMany(RoleLog, { foreignKey: 'createdBy'});
-RoleLog.belongsTo(User, { foreignKey: 'createdBy'});
+User.hasMany(RoleLog, { foreignKey: 'createdby'});
+RoleLog.belongsTo(User, { foreignKey: 'createdby'});
 
 Role.hasMany(RoleLog, {foreignKey: 'role_id'});
 RoleLog.belongsTo(Role,{foreignKey: 'role_id'});

@@ -35,12 +35,12 @@ export const createRole = async (req, res) => {
 
     const createRoleTransaction = await sequelize.transaction();
     try {
-        const createdBy = req.session.userId;
-        if (!createdBy) {
+        const createdby = req.session.userId;
+        if (!createdby) {
             return res.status(401).json({ message: "Unauthorized: No user session" });
         }
 
-        const roleData = { ...req.body, createdBy };
+        const roleData = { ...req.body, createdby };
         const newRole = await Role.create(roleData, { transaction: createRoleTransaction });
 
         await RoleLog.create({
@@ -50,7 +50,7 @@ export const createRole = async (req, res) => {
                 fields: Object.keys(req.body),
                 values: req.body,
             }),
-            createdBy,
+            createdby,
             ip: requestIp.getClientIp(req)
         }, { transaction: createRoleTransaction });
 
@@ -69,7 +69,7 @@ export const updateRole = async (req, res) => {
     try {
         const role = await Role.findByPk(req.params.id);
         if (!role) return res.status(404).json({ message: "Role tidak ditemukan" });
-        const createdBy = req.session.userId;
+        const createdby = req.session.userId;
         const updatedFields = {};
         const oldValues = {};
 
@@ -92,7 +92,7 @@ export const updateRole = async (req, res) => {
                         oldValues,           // ✅ nilai lama
                         newValues: updatedFields, // ✅ nilai baru
                     }),
-                    createdBy,
+                    createdby,
                     ip: requestIp.getClientIp(req),
                 },
                 { transaction }
@@ -213,8 +213,8 @@ export const createRolePrivilege = async (req, res) => {
     const createTransaction = await sequelize.transaction();
 
     try {
-        const createdBy = req.session.userId;
-        if (!createdBy) {
+        const createdby = req.session.userId;
+        if (!createdby) {
             return res.status(401).json({ message: "Unauthorized: No user session" });
         }
 
@@ -225,7 +225,7 @@ export const createRolePrivilege = async (req, res) => {
         const newPrivilege = await Privilege.create({
             name,
             description,
-            createdby: createdBy
+            createdby: createdby
         }, { transaction: createTransaction });
 
         // 2. Simpan log privilege
@@ -236,7 +236,7 @@ export const createRolePrivilege = async (req, res) => {
                 fields: ["name", "description"],
                 values: { name, description }
             }),
-            createdby: createdBy,
+            createdby: createdby,
             ip: clientIp
         }, { transaction: createTransaction });
 
@@ -244,7 +244,7 @@ export const createRolePrivilege = async (req, res) => {
         const newRolePrivilege = await RolePrivilege.create({
             role_id,
             privilege_id: newPrivilege.id,
-            createdby: createdBy
+            createdby: createdby
         }, { transaction: createTransaction });
 
         await createTransaction.commit();
@@ -272,7 +272,7 @@ export const deleteRole = async (req, res) => {
         await RoleLog.create({
             role_id: role.id,
             changes: `Role dihapus`,
-            createdBy: req.body.createdBy || role.createdBy
+            createdby: req.body.createdby || role.createdby
         });
 
         res.json({ message: "Role berhasil dihapus" });

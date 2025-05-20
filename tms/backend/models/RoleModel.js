@@ -22,7 +22,7 @@ const Role = db.define("role", {
         allowNull: false,
         defaultValue: "",
     },
-    createdBy: {
+    createdby: {
         type: DataTypes.INTEGER,
         allowNull: false,
         validate: {

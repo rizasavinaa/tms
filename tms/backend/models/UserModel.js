@@ -43,7 +43,7 @@ const User = db.define('user', {
         allowNull: false,
         defaultValue: 0
     },
-    createdBy: {
+    createdby: {
         type: DataTypes.INTEGER,
         allowNull: false,
         validate: {

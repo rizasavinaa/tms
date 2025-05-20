@@ -11,6 +11,13 @@ const KaryawanPortoPreRegister = lazy(() => import("../components/KaryawanPortoP
 const KaryawanPortoRegister = lazy(() => import("../components/KaryawanPortoRegister"));
 const KaryawanPortoList = lazy(() => import("../components/KaryawanPortoList"));
 const KaryawanPortoDetail = lazy(() => import("../components/KaryawanPortoDetail"));
+const KaryawanPKList = lazy(() => import("../components/KaryawanPKList"));
+const KaryawanPKDetail = lazy(() => import("../components/KaryawanPKDetail"));
+const KaryawanPKRegister = lazy(() => import("../components/KaryawanPKRegister"));
+const KaryawanKlienList = lazy(() => import("../components/KaryawanKlienList"));
+const KaryawanKlienRegister = lazy(() => import("../components/KaryawanKlienRegister"));
+const KaryawanKlienDetail = lazy(() => import("../components/KaryawanKlienDetail"));
+
 const KaryawanRoutes = () => {
   return (
     <Suspense fallback={<Loading />}>
@@ -23,6 +30,12 @@ const KaryawanRoutes = () => {
         <Route path="/porto-register/:talentId" element={<KaryawanPortoRegister />} />
         <Route path="/porto-pk" element={<KaryawanPortoList />} />
         <Route path="/porto-pk/:id" element={<KaryawanPortoDetail />} />
+        <Route path="/pk" element={<KaryawanPKList/>} />
+        <Route path="/pk/:id" element={<KaryawanPKDetail/>} />
+        <Route path="/pk-register" element={<KaryawanPKRegister/>} />
+        <Route path="/klien" element={<KaryawanKlienList/>} />
+        <Route path="/klien/:id" element={<KaryawanKlienDetail/>} />
+        <Route path="/klien-register" element={<KaryawanKlienRegister/>} />
         <Route path="*" element={<NotFound />} /> {/* Tambahkan ini */}
       </Routes>
     </Suspense>
