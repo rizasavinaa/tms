@@ -26,9 +26,9 @@ const ItRoleRegister = () => {
             .then(() => {
                 sessionStorage.setItem("successMessage", "Registrasi berhasil!");
                 navigate("/it/roles");
-                setTimeout(() => {
-                    window.location.reload(); // Paksa reload setelah navigasi
-                }, 100);
+                // setTimeout(() => {
+                //     window.location.reload(); // Paksa reload setelah navigasi
+                // }, 100);
             })
             .catch(error => {
                 console.error("Registrasi gagal:", error);

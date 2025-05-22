@@ -7,7 +7,7 @@ import { Sequelize } from "sequelize";
 import sequelize from "../config/Database.js";
 import User from "../models/UserModel.js";
 import fs from "fs";
-import Talent from "../models/TalentModel.js"; 
+import Talent from "../models/TalentModel.js";
 
 const getResourceType = (mimetype) => {
     if (mimetype.startsWith("image/")) return "image";
@@ -28,7 +28,7 @@ export const createTalentPortofolio = async (req, res) => {
         // Buat public_id unik
         const generatedPublicId = `portofolio_${uuidv4()}`;
         const resourceType = getResourceType(file.mimetype);
-        
+
 
         // Upload ke Cloudinary
         const result = await cloudinary.uploader.upload(file.path, {
@@ -111,7 +111,7 @@ export const getTalentPortofolio = async (req, res) => {
         // Ubah hasil agar namepk sejajar dengan atribut utama
         const result = portofolios.map(p => ({
             id: p.id,
-            name : p.name,
+            name: p.name,
             description: p.description,
             file_link: p.file_link,
             createdAt: p.createdAt,
@@ -145,21 +145,21 @@ export const getTalentPortofolioById = async (req, res) => {
 
 export const getTalentPortofolioByTalentId = async (req, res) => {
     try {
-      const { talent_id } = req.params;
-  
-      const portofolios = await TalentPortofolio.findAll({
-        where: { talent_id },
-        order: [['id', 'DESC']],
-        attributes: ['id', 'name', 'description', 'file_link', 'createdAt']
-      });
-  
-      res.status(200).json(portofolios);
+        const { talent_id } = req.params;
+
+        const portofolios = await TalentPortofolio.findAll({
+            where: { talent_id },
+            order: [['id', 'DESC']],
+            attributes: ['id', 'name', 'description', 'file_link', 'createdAt']
+        });
+
+        res.status(200).json(portofolios);
     } catch (error) {
-      console.error("Error getTalentPortofolioByTalentId:", error);
-      res.status(500).json({ message: "Gagal mengambil portofolio berdasarkan talent_id" });
+        console.error("Error getTalentPortofolioByTalentId:", error);
+        res.status(500).json({ message: "Gagal mengambil portofolio berdasarkan talent_id" });
     }
-  };
-  
+};
+
 
 export const updateTalentPortofolioDescription = async (req, res) => {
     const transaction = await sequelize.transaction();

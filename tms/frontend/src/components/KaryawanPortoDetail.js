@@ -143,30 +143,48 @@ const KaryawanPortoDetail = () => {
                             {activeTab === "detail" && porto && (
                                 <div className="card p-3">
                                     <form onSubmit={handleSubmit}>
-                                        <div className="mb-3">
-                                            <label className="form-label">Nama</label>
-                                            <input className="form-control" value={porto.name} disabled />
+                                        <div className="row mb-3">
+                                            <label className="col-sm-3 col-form-label">Nama</label>
+                                            <div className="col-sm-9">
+                                                <input className="form-control" value={porto.name} disabled />
+                                            </div>
                                         </div>
-                                        <div className="mb-3">
-                                            <label className="form-label">Deskripsi</label>
-                                            <textarea
-                                                name="description"
-                                                value={formData.description}
-                                                onChange={handleInputChange}
-                                                className="form-control"
-                                                rows={4}
-                                                required
-                                            />
+                                        <div className="row mb-3">
+                                            <label htmlFor="description" className="col-sm-3 col-form-label">Deskripsi</label>
+                                            <div className="col-sm-9">
+                                                <textarea
+                                                    id="description"
+                                                    name="description"
+                                                    value={formData.description}
+                                                    onChange={handleInputChange}
+                                                    className="form-control"
+                                                    rows={4}
+                                                    required
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="mb-3">
-                                            <label className="form-label">Link File</label>
-                                            <a href={porto.file_link} target="_blank" rel="noopener noreferrer" className="form-control-plaintext">
-                                                {porto.file_link}
-                                            </a>
+                                        <div className="row mb-3">
+                                            <label className="col-sm-3 col-form-label">Link File</label>
+                                            <div className="col-sm-9 d-flex align-items-center">
+                                                <a
+                                                    href={porto.file_link}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="form-control-plaintext text-break"
+                                                >
+                                                    {porto.file_link}
+                                                </a>
+                                            </div>
                                         </div>
-                                        <button type="submit" className="btn btn-success">Simpan</button>
+                                        <div className="row mb-3">
+                                            <label className="col-sm-3 col-form-label"></label>
+                                            <div className="col-sm-9">
+                                                <button type="submit" className="btn btn-success">Simpan</button>
+                                            </div>
+                                        </div>
                                     </form>
                                 </div>
+
                             )}
 
                             {activeTab === "data" && (

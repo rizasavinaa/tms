@@ -6,6 +6,9 @@ import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
+import { Link } from "react-router-dom";
+import { formatRupiah } from "../utils/format";
+
 
 const KaryawanKlienDetail = () => {
     useAuthRedirect(21);
@@ -279,8 +282,7 @@ const KaryawanKlienDetail = () => {
                                                     >
                                                         <option value="id">ID</option>
                                                         <option value="name">Nama</option>
-                                                        {/* <option value="email">Email</option>
-                                                        <option value="position">Posisi</option> */}
+                                                        <option value="category">Posisi</option>
                                                     </select>
                                                 </div>
                                                 <div style={{ width: "80%" }}>
@@ -304,10 +306,11 @@ const KaryawanKlienDetail = () => {
                                                         <tr>
                                                             {[
                                                                 { key: "id", label: "ID" },
+                                                                { key: "start_date", label: "Tanggal Rekrut" },
                                                                 { key: "name", label: "Nama" },
-                                                                { key: "email", label: "Email" },
-                                                                { key: "position", label: "Posisi" },
-                                                                { key: "status", label: "Status" },
+                                                                { key: "category", label: "Posisi" },
+                                                                { key: "salary", label: "Gaji" },
+                                                                { key: "end_date", label: "Tanggal Berakhir" },
                                                             ].map(col => (
                                                                 <th
                                                                     key={col.key}
@@ -317,19 +320,35 @@ const KaryawanKlienDetail = () => {
                                                                     {col.label} {sortColumnPk === col.key ? (sortOrderPk === "asc" ? "▲" : "▼") : ""}
                                                                 </th>
                                                             ))}
+                                                            <th>File Kontrak</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         {paginatedTalents.length === 0 ? (
-                                                            <tr><td colSpan={5} className="text-center">Tidak ada data.</td></tr>
+                                                            <tr><td colSpan={7} className="text-center">Tidak ada data.</td></tr>
                                                         ) : (
                                                             paginatedTalents.map(t => (
                                                                 <tr key={t.id}>
                                                                     <td>{t.id}</td>
+                                                                    <td>{new Date(t.start_date).toLocaleDateString("id-ID")}</td>
                                                                     <td>{t.name}</td>
-                                                                    <td>{t.email}</td>
-                                                                    <td>{t.position}</td>
-                                                                    <td>{t.status}</td>
+                                                                    <td>{t.category}</td>
+                                                                    <td>{formatRupiah(t.salary)}</td>
+                                                                    <td>{new Date(t.end_date).toLocaleDateString("id-ID")}</td>
+                                                                    <td>
+                                                                        <a
+                                                                            href={`${t.file_link.replace("/upload/", "/upload/fl_attachment/")}`}
+                                                                            className="btn btn-sm btn-info me-1"
+                                                                            title="Download"
+                                                                            download
+                                                                        >
+                                                                            <i className="fas fa-download"></i>
+                                                                        </a>
+
+                                                                        <Link to={`/karyawan/kontrak/${t.id}`} className="btn btn-secondary btn-sm me-1">
+                                                                            Lihat Detail
+                                                                        </Link>
+                                                                    </td>
                                                                 </tr>
                                                             ))
                                                         )}

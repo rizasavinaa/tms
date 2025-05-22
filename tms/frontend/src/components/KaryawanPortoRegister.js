@@ -44,7 +44,7 @@ const KaryawanPortoRegister = () => {
             await axios.post(`${process.env.REACT_APP_API_URL}/portopks`, formData);
             sessionStorage.setItem("successMessage", "Registrasi berhasil!");
             navigate("/karyawan/porto-pk");
-            setTimeout(() => window.location.reload(), 100);
+            // setTimeout(() => window.location.reload(), 100);
         } catch (error) {
             console.error("Registrasi gagal:", error);
             Swal.fire({

@@ -32,6 +32,15 @@ import {
     getClientLog,
     createClient,
 } from "../controllers/ClientController.js";
+import{
+    createTalentWorkHistory,
+    getTalentWorkHistoryByTalentId,
+    getTalentWorkHistoryByClientId,
+    getTalentWorkHistoryById,
+    getTalentWorkHistoryLog,
+    updateTalentContract,
+    checkActiveContract
+} from "../controllers/TalentWorkHistoryController.js";
 import upload from "../middleware/upload.js";
 
 
@@ -61,6 +70,12 @@ router.get("/clients/:id", getClientById);
 router.get("/clients-log", getClientLog);
 router.put("/clients/:id", updateClient);
 router.post('/clients', createClient);
-router.get("/talents-clients/:id", getActiveTalentsByClient);
-
+router.get("/clients", getClients);
+router.post('/contracts/:id', upload.single("contract_file"), createTalentWorkHistory);
+router.get("/contracts/:id", getTalentWorkHistoryById);
+router.get("/contracts-log", getTalentWorkHistoryLog);
+router.put("/contracts/:id", updateTalentContract);
+router.get("/contracts/talent/:talent_id", getTalentWorkHistoryByTalentId);
+router.get("/talents-clients/:client_id", getTalentWorkHistoryByClientId);
+router.get("/contracts-check-active", checkActiveContract);
 export default router;

@@ -36,9 +36,9 @@ const ItRolePrivilegeRegister = () => {
         .then(() => {
             sessionStorage.setItem("successMessage", "Hak Akses berhasil ditambahkan!");
             navigate("/it/hak-akses");
-            setTimeout(() => {
-                window.location.reload(); // Paksa reload setelah navigasi
-            }, 100);
+            // setTimeout(() => {
+            //     window.location.reload(); // Paksa reload setelah navigasi
+            // }, 100);
         })
         .catch(error => {
             console.error("Gagal menambahkan hak akses:", error);

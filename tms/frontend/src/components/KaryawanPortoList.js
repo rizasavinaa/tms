@@ -26,7 +26,19 @@ const KaryawanPortoList = () => {
 
         const successMessage = sessionStorage.getItem("successMessage");
         if (successMessage) {
-            Swal.fire("Sukses", successMessage, "success");
+            Swal.fire({
+                icon: "success",
+                title: "Sukses",
+                text: successMessage,
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+            }).then(() => {
+                // jalankan reload atau navigasi di sini, setelah Swal hilang
+                window.location.reload();
+                // atau
+                // navigate('/halaman-tujuan');
+            });
             sessionStorage.removeItem("successMessage");
         }
     }, []);
@@ -46,7 +58,7 @@ const KaryawanPortoList = () => {
             confirmButtonText: "Hapus",
             cancelButtonText: "Batal",
         });
-    
+
         if (confirm.isConfirmed) {
             try {
                 setLoading(true); // ⬅️ Aktifkan overlay
@@ -61,7 +73,7 @@ const KaryawanPortoList = () => {
             }
         }
     };
-    
+
 
 
     const filteredPortos = portos.filter(porto => {

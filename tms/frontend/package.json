@@ -20,6 +20,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.3.0",
     "react-scripts": "^5.0.1",
+    "react-select": "^5.10.1",
     "recharts": "^2.15.2",
     "sortablejs": "^1.15.6",
     "sweetalert2": "^11.17.2",

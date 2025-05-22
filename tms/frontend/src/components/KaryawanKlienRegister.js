@@ -77,7 +77,7 @@ const KaryawanKlienRegister = () => {
             });
             sessionStorage.setItem("successMessage", "Registrasi klien berhasil!");
             navigate("/klien"); // ganti sesuai rute halaman daftar klien kamu
-            setTimeout(() => window.location.reload(), 100);
+            // setTimeout(() => window.location.reload(), 100);
         } catch (err) {
             Swal.fire("Error", "Gagal menyimpan data klien", "error");
         }

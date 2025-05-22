@@ -113,7 +113,7 @@ function Sidebarkaryawan({ activeMenu }) {
                                     <i className="nav-icon fa fa-solid fa-users" />
                                     <p>
                                         Pekerja Kreatif
-                                        <i className="nav-arrow bi bi-chevron-right" />
+                                       <a href="#" className="nav-arrow bi bi-chevron-right" />
                                     </p>
                                 </a>
                                 <ul className="nav nav-treeview">
@@ -148,7 +148,7 @@ function Sidebarkaryawan({ activeMenu }) {
                                     <i className="nav-icon fa fa-solid fa-building" />
                                     <p>
                                         Perusahaan Klien
-                                        <i className="nav-arrow bi bi-chevron-right" />
+                                        <a href="#" className="nav-arrow bi bi-chevron-right" />
                                     </p>
                                 </a>
                                 <ul className="nav nav-treeview">
@@ -160,8 +160,8 @@ function Sidebarkaryawan({ activeMenu }) {
                                     </li>
                                 </ul>
                             </li>
-                            <li className="nav-item">
-                                <a href="#" className="nav-link">
+                            <li  className={`nav-item ${isOpen(8)}`}>
+                                <a href="/karyawan/kontrak" className="nav-link">
                                     <i className="nav-icon fa fa-solid fa-handshake" />
                                     <p>
                                         Kontrak
@@ -173,7 +173,7 @@ function Sidebarkaryawan({ activeMenu }) {
                                     <i className="nav-icon fa fa-solid fa-file" />
                                     <p>
                                         Laporan
-                                        <i className="nav-arrow bi bi-chevron-right" />
+                                        <a href="#" className="nav-arrow bi bi-chevron-right" />
                                     </p>
                                 </a>
                                 <ul className="nav nav-treeview">

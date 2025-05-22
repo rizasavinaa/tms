@@ -9,6 +9,7 @@ import useAuthRedirect from "../features/authRedirect";
 import { useLocation } from "react-router-dom";
 import KaryawanPortoListByTalent from "./KaryawanPortoListByTalent";
 import { formatCurrency } from "../utils/format";
+import KaryawanKontrakListByTalent from "./KaryawanKontrakListByTalent";
 
 
 const KaryawanPKDetail = () => {
@@ -22,6 +23,7 @@ const KaryawanPKDetail = () => {
         description: "",
         last_salary: "",
         bank_account: "",
+        status_id: "",
     });
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -34,6 +36,8 @@ const KaryawanPKDetail = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
     const [sortConfig, setSortConfig] = useState({ key: "created_at", direction: "desc" });
+    const [statusDetail, setStatusDetail] = useState("-");
+    const [clientName, setClientName] = useState("");
 
     useEffect(() => {
         const tabParam = query.get("tab");
@@ -42,6 +46,12 @@ const KaryawanPKDetail = () => {
         }
         fetchTalent();
         fetchCategories();
+
+        const successMessage = sessionStorage.getItem("successMessage");
+        if (successMessage) {
+            Swal.fire("Sukses", successMessage, "success");
+            sessionStorage.removeItem("successMessage");
+        }
     }, [id]);
 
     useEffect(() => {
@@ -80,9 +90,21 @@ const KaryawanPKDetail = () => {
                 email: data.email,
                 category_id: data.category_id,
                 description: data.description,
-                last_salary: data.last_salary,
+                last_salary: String(Math.floor(Number(data.last_salary) || 0)),
                 bank_account: data.bank_account,
+                status_id: data.status_id
             });
+
+            // Simpan detail status (misal: Available, Hired, Blocked)
+            setStatusDetail(data.talent_status?.name || "-");
+
+            // Jika status Hired (2), ambil nama klien
+            if (data.status_id === 2 && data.client_id) {
+                const clientRes = await axios.get(`${process.env.REACT_APP_API_URL}/clients/${data.client_id}`);
+                setClientName(clientRes.data.name);
+            } else {
+                setClientName(""); // Kosongkan jika bukan status 2
+            }
         } catch (err) {
             console.error("Gagal mengambil data talent:", err);
         }
@@ -201,67 +223,96 @@ const KaryawanPKDetail = () => {
                         <div className="tab-content mt-3">
                             {activeTab === "detail" && (
                                 <div className="card p-3">
-                                    <form onSubmit={handleSubmit}>
-                                        <div className="mb-3 row">
-                                            <label className="col-sm-3 col-form-label">Nama</label>
-                                            <div className="col-sm-9">
-                                                <input type="text" name="name" className="form-control" value={formData.name} onChange={handleChange} required />
-                                            </div>
-                                        </div>
-                                        <div className="mb-3 row">
-                                            <label className="col-sm-3 col-form-label">Email</label>
-                                            <div className="col-sm-9">
-                                                <input type="email" name="email" className="form-control" value={formData.email} onChange={handleChange} disabled />
-                                            </div>
-                                        </div>
-                                        <div className="mb-3 row">
-                                            <label className="col-sm-3 col-form-label">Posisi</label>
-                                            <div className="col-sm-9">
-                                                <select name="category_id" className="form-control" value={formData.category_id} onChange={handleChange}>
-                                                    <option value="">- Pilih Posisi -</option>
-                                                    {categories.map((cat) => (
-                                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div className="mb-3 row">
-                                            <label className="col-sm-3 col-form-label">Catatan</label>
-                                            <div className="col-sm-9">
-                                                <textarea name="description" className="form-control" value={formData.description} onChange={handleChange} rows={3} />
-                                            </div>
-                                        </div>
-                                        <div className="mb-3 row">
-                                            <label className="col-sm-3 col-form-label">Gaji</label>
-                                            <div className="col-sm-9">
-                                                <input
-                                                    type="text"
-                                                    name="last_salary"
-                                                    className="form-control"
-                                                    value={formatCurrency(formData.last_salary)}
-                                                    onChange={(e) => {
-                                                        const numericValue = e.target.value.replace(/[^\d]/g, "");
-                                                        setFormData({ ...formData, last_salary: numericValue });
-                                                    }}
-                                                />
+                                    <div className="row">
+                                        <div className="col-md-9">
+                                            <form onSubmit={handleSubmit}>
+                                                <div className="mb-3 row">
+                                                    <label className="col-sm-3 col-form-label">Nama</label>
+                                                    <div className="col-sm-9">
+                                                        <input type="text" name="name" className="form-control" value={formData.name} onChange={handleChange} required />
+                                                    </div>
+                                                </div>
+                                                <div className="mb-3 row">
+                                                    <label className="col-sm-3 col-form-label">Status</label>
+                                                    <div className="col-sm-9">
+                                                        {statusDetail}{formData.status_id === 2 && clientName ? ` - ${clientName}` : ""}
+                                                    </div>
+                                                </div>
+                                                <div className="mb-3 row">
+                                                    <label className="col-sm-3 col-form-label">Email</label>
+                                                    <div className="col-sm-9">
+                                                        <input type="email" name="email" className="form-control" value={formData.email} onChange={handleChange} disabled />
+                                                    </div>
+                                                </div>
+                                                <div className="mb-3 row">
+                                                    <label className="col-sm-3 col-form-label">Posisi</label>
+                                                    <div className="col-sm-9">
+                                                        <select name="category_id" className="form-control" value={formData.category_id} onChange={handleChange}>
+                                                            <option value="">- Pilih Posisi -</option>
+                                                            {categories.map((cat) => (
+                                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="mb-3 row">
+                                                    <label className="col-sm-3 col-form-label">Catatan</label>
+                                                    <div className="col-sm-9">
+                                                        <textarea name="description" className="form-control" value={formData.description} onChange={handleChange} rows={3} />
+                                                    </div>
+                                                </div>
+                                                <div className="mb-3 row">
+                                                    <label className="col-sm-3 col-form-label">Gaji Minimal</label>
+                                                    <div className="col-sm-9">
+                                                        <input
+                                                            type="text"
+                                                            name="last_salary"
+                                                            className="form-control"
+                                                            value={formatCurrency(formData.last_salary)}
+                                                            onChange={(e) => {
+                                                                // Hanya ambil digit, simpan tanpa format ribuan ke state
+                                                                const numericValue = e.target.value.replace(/[^\d]/g, "");
+                                                                setFormData({ ...formData, last_salary: numericValue });
+                                                            }}
+                                                        />
 
-                                            </div>
+                                                    </div>
+                                                </div>
+                                                <div className="mb-3 row">
+                                                    <label className="col-sm-3 col-form-label">Rekening Bank</label>
+                                                    <div className="col-sm-9">
+                                                        <input type="text" name="bank_account" className="form-control" value={formData.bank_account} onChange={handleChange} placeholder="Nama Bank - Nomor Rekening" />
+                                                    </div>
+                                                </div>
+                                                <div className="row">
+                                                    <div className="offset-sm-3 col-sm-9">
+                                                        <button type="submit" className="btn btn-success">Simpan</button>
+                                                    </div>
+                                                </div>
+                                            </form>
                                         </div>
-                                        <div className="mb-3 row">
-                                            <label className="col-sm-3 col-form-label">Rekening Bank</label>
-                                            <div className="col-sm-9">
-                                                <input type="text" name="bank_account" className="form-control" value={formData.bank_account} onChange={handleChange} placeholder="Nama Bank - Nomor Rekening" />
-                                            </div>
+                                        <div className="col-md-3 d-flex flex-column align-items-end gap-2">
+                                            {formData.status_id === 1 && (
+                                                <a
+                                                    href={`/karyawan/kontrak-register/${id}`}
+                                                    className="btn btn-success"
+                                                    style={{ whiteSpace: "nowrap" }}
+                                                >
+                                                    Rekrut
+                                                </a>
+                                            )}
+                                            <a
+                                                href={`/karyawan/riwayat-kontrak-register/${id}`}
+                                                className="btn btn-sm btn-success"
+                                                style={{ whiteSpace: "nowrap" }}
+                                            >
+                                                + Riwayat Kerja
+                                            </a>
                                         </div>
-                                        <div className="row">
-                                            <div className="offset-sm-3 col-sm-9">
-                                                <button type="submit" className="btn btn-success">Simpan</button>
-                                            </div>
-                                        </div>
-                                    </form>
+
+                                    </div>
                                 </div>
                             )}
-
                             {activeTab === "portofolio" && (
                                 <div className="card p-3">
                                     <KaryawanPortoListByTalent talentId={id} />
@@ -270,7 +321,7 @@ const KaryawanPKDetail = () => {
 
                             {activeTab === "kontrak" && (
                                 <div className="card p-3">
-                                    <p>Belum ada data kontrak kerja.</p>
+                                    <KaryawanKontrakListByTalent talentId={id} />
                                 </div>
                             )}
 

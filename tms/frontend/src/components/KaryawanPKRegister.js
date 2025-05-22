@@ -77,7 +77,7 @@ const KaryawanPKRegister = () => {
     const formatCurrency = (value) => {
         const number = parseInt(value);
         if (isNaN(number)) return "";
-        return "Rp " + number.toLocaleString("id-ID");
+        return number.toLocaleString("id-ID");
     };
 
     const handleSubmit = async (e) => {
@@ -115,7 +115,7 @@ const KaryawanPKRegister = () => {
             });
             sessionStorage.setItem("successMessage", "Registrasi berhasil!");
             navigate("/karyawan/pk");
-            setTimeout(() => window.location.reload(), 100);
+            // setTimeout(() => window.location.reload(), 100);
         } catch (err) {
             Swal.fire("Error", "Gagal menyimpan data", "error");
         }

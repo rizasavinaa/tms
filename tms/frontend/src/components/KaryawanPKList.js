@@ -24,6 +24,24 @@ const KaryawanPKList = () => {
         axios.get(`${process.env.REACT_APP_API_URL}/talents`)
             .then((response) => setTalents(response.data))
             .catch((error) => console.error("Gagal mengambil data talents:", error));
+
+        const successMessage = sessionStorage.getItem("successMessage");
+        if (successMessage) {
+            Swal.fire({
+                icon: "success",
+                title: "Sukses",
+                text: successMessage,
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+            }).then(() => {
+                // jalankan reload atau navigasi di sini, setelah Swal hilang
+                window.location.reload();
+                // atau
+                // navigate('/halaman-tujuan');
+            });
+            sessionStorage.removeItem("successMessage");
+        }
     }, []);
 
     const handleSort = (column) => {
@@ -79,22 +97,22 @@ const KaryawanPKList = () => {
             },
             responseType: 'blob',
         })
-        .then(response => {
-            const blob = new Blob([response.data], {
-                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            .then(response => {
+                const blob = new Blob([response.data], {
+                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                });
+                saveAs(blob, "data_talent.xlsx");
+            })
+            .catch(error => {
+                console.error("Error exporting Excel:", error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Gagal Download",
+                    text: "Terjadi kesalahan saat mengekspor file.",
+                });
             });
-            saveAs(blob, "data_talent.xlsx");
-        })
-        .catch(error => {
-            console.error("Error exporting Excel:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Gagal Download",
-                text: "Terjadi kesalahan saat mengekspor file.",
-            });
-        });
     };
-    
+
 
     return (
         <>
