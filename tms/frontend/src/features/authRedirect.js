@@ -33,10 +33,10 @@ const useAuthRedirect = (privilegeId) => {
         if (isLoading) return;
 
         const sessionHasRedirected = sessionStorage.getItem("hasRedirected") === "true";
-        console.log("isError", isError);
-        console.log("isLoading", isLoading);
-        console.log("user", user);
-        console.log("sessionHasRedirected", sessionHasRedirected);
+        // console.log("isError", isError);
+        // console.log("isLoading", isLoading);
+        // console.log("user", user);
+        // console.log("sessionHasRedirected", sessionHasRedirected);
 
         if (isError) {
             // Simpan halaman yang ingin dituju jika terjadi error

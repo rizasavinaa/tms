@@ -1,14 +1,15 @@
 import User from "../models/UserModel.js";
 import argon2 from "argon2";
-import RolePrivilege from "../models/RolePrivilegeModel.js"; 
+import RolePrivilege from "../models/RolePrivilegeModel.js";
 import UserLog from "../models/UserLogModel.js";
 import requestIp from "request-ip";
+import Talent from "../models/TalentModel.js"
 
 export const Login = async (req, res) => {
     const user = await User.scope(null).findOne({
         where: { email: req.body.email }
     });
-    
+
     if (!user) return res.status(404).json({ msg: "User tidak ditemukan" });
 
     // ❌ Cek apakah user nonaktif
@@ -19,8 +20,8 @@ export const Login = async (req, res) => {
     const match = await argon2.verify(user.password, req.body.password);
     if (!match) return res.status(400).json({ msg: "Password Salah" });
 
-     // 🔥 Simpan IP dan last_login
-    await User.update({ 
+    // 🔥 Simpan IP dan last_login
+    await User.update({
         last_login: new Date(),
         last_ip: req.ip  // 🚀 Simpan IP login
     }, { where: { id: user.id } });
@@ -29,22 +30,33 @@ export const Login = async (req, res) => {
     req.session.roleId = user.role_id;
     req.session.fullname = user.fullname;
     req.session.createdAt = Date.now();
+    req.session.talent_id = 0;
+    if (user.role_id === 3) {
+        const talent = await Talent.findOne({
+            where: { user_id: user.id }
+        });
+
+        if (talent) {
+            req.session.talent_id = talent.id;
+        }
+    }
     req.session.save(() => {
         console.log("Session setelah login:", req.session); // Cek session setelah disimpan
         res.status(200).json({
             id: user.id,
             fullname: user.fullname,
             email: user.email,
-            role_id: user.role_id
+            role_id: user.role_id,
+            talent_id: user.talent_id,
         });
     });
 
     // 🔹 Simpan log login
     await UserLog.create({
-      user_id: user.id,
-      changes: "Login",
-      ip: requestIp.getClientIp(req), // Ambil IP user
-      createdby: user.id,
+        user_id: user.id,
+        changes: "Login",
+        ip: requestIp.getClientIp(req), // Ambil IP user
+        createdby: user.id,
     });
 
 };
@@ -65,35 +77,41 @@ export const Me = async (req, res) => {
 
     if (!user) return res.status(404).json({ msg: "User tidak ditemukan" });
 
-    res.status(200).json(user);
-};
+    return res.status(200).json({
+        id: user.id,
+        fullname: user.fullname,
+        email: user.email,
+        role_id: user.role_id,
+        talent_id: req.session.talent_id, // ⬅️ Tambahkan ini!
+    });
+}
 
 
 export const logOut = async (req, res) => {
     try {
-      const userId = req.session.userId;
-      if (!userId) {
-        return res.status(401).json({ message: "Anda belum login" });
-      }
-  
-      // 🔹 Simpan log logout ke database
-      await UserLog.create({
-        user_id: userId,
-        changes: "Logout",
-        ip: requestIp.getClientIp(req),
-        createdby: userId,
-      });
-  
-      // 🔹 Hapus sesi
-      req.session.destroy((err) => {
-        if (err) {
-          return res.status(400).json({ message: "Tidak dapat logout" });
+        const userId = req.session.userId;
+        if (!userId) {
+            return res.status(401).json({ message: "Anda belum login" });
         }
-        res.status(200).json({ message: "Anda telah logout" });
-      });
-  
+
+        // 🔹 Simpan log logout ke database
+        await UserLog.create({
+            user_id: userId,
+            changes: "Logout",
+            ip: requestIp.getClientIp(req),
+            createdby: userId,
+        });
+
+        // 🔹 Hapus sesi
+        req.session.destroy((err) => {
+            if (err) {
+                return res.status(400).json({ message: "Tidak dapat logout" });
+            }
+            res.status(200).json({ message: "Anda telah logout" });
+        });
+
     } catch (error) {
-      res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
+        res.status(500).json({ message: "Terjadi kesalahan", error: error.message });
     }
 };
 
@@ -106,7 +124,7 @@ export const checkPrivilege = async (req, res) => {
 
     try {
         const hasAccess = await RolePrivilege.findOne({
-            where: { 
+            where: {
                 role_id: req.session.roleId,
                 privilege_id: privilege_id
             }

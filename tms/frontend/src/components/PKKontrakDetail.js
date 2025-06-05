@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
-import Sidebar from "./sidebarkaryawan";
+import Sidebar from "./sidebarpekerjakreatif";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 import Select from "react-select";
 import { formatCurrency } from "../utils/format";
 
-const KaryawanKontrakDetail = () => {
+const PKKontrakDetail = () => {
     useAuthRedirect(25);
     const { id } = useParams(); // ID kontrak
     const [activeTab, setActiveTab] = useState("detail");
@@ -22,7 +22,7 @@ const KaryawanKontrakDetail = () => {
         start_date: "",
         end_date: "",
         description: "",
-        file_link: "",
+        file_link:"",
     });
 
     const [logData, setLogData] = useState([]);
@@ -31,8 +31,6 @@ const KaryawanKontrakDetail = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 10;
     const [sortConfig, setSortConfig] = useState({ key: "created_at", direction: "desc" });
-    const fileInputRef = useRef(null);
-    const [talent, setTalent] = useState({});
 
     useEffect(() => {
         const fetchClients = async () => {
@@ -65,16 +63,9 @@ const KaryawanKontrakDetail = () => {
                     start_date: data.start_date?.slice(0, 10) || "",
                     end_date: data.end_date?.slice(0, 10) || "",
                     description: data.description || "",
-                    file_link: data.file_link,
+                    file_link : data.file_link || ""
                 });
                 setTalentId(data.talent_id);
-
-                // ✅ Fetch talent berdasarkan talent_id dari porto
-                if (data.talent_id) {
-                    axios.get(`${process.env.REACT_APP_API_URL}/talents/${data.talent_id}`)
-                        .then(res => setTalent(res.data))
-                        .catch(error => console.error("Error fetch talent:", error));
-                }
             }).catch(err => console.error("Error loading contract:", err));
     }, [id]);
 
@@ -97,170 +88,57 @@ const KaryawanKontrakDetail = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // const handleSubmit = async (e) => {
-    //     e.preventDefault();
-
-    //     const today = new Date().toISOString().split("T")[0]; // format YYYY-MM-DD
-    //     const isActive = formData.end_date >= today;
-
-    //     if (isActive) {
-    //         if (formData.client_id === "other") {
-    //             Swal.fire({
-    //                 icon: "warning",
-    //                 title: "Klien Tidak Valid",
-    //                 text: "Kontrak ini bersifat aktif. Harap pilih perusahaan klien yang tersedia."
-    //             });
-    //             return;
-    //         }
-
-    //         // Cek kontrak aktif lain
-    //         const check = await axios.get(`${process.env.REACT_APP_API_URL}/contracts-check-active?t=${talentId}&exclude=${id}`);
-    //         if (check.data.isActive) {
-    //             Swal.fire({
-    //                 icon: "warning",
-    //                 title: "Kontrak Aktif Ganda",
-    //                 text: "Periksa kembali tanggal berakhir. Terdapat kontrak lain yang juga bersifat aktif untuk talent ini."
-    //             });
-    //             return;
-    //         }
-    //     } else {
-    //         if (formData.client_id === "other" && !formData.description?.trim()) {
-    //             Swal.fire({
-    //                 icon: "warning",
-    //                 title: "Deskripsi Wajib Diisi",
-    //                 text: "Harap isi deskripsi jika memilih kontrak ini bersifat riwayat kerja dan perusahaan tidak terdaftar dalam sistem."
-    //             });
-    //             return;
-    //         }
-    //     }
-
-    //     // Kirim form jika semua valid
-    //     try {
-    //         // await axios.put(`${process.env.REACT_APP_API_URL}/contracts/${id}`, formData);
-
-    //         const payload = new FormData();
-    //         payload.append("client_id", formData.client_id);
-    //         payload.append("salary", formData.salary);
-    //         payload.append("start_date", formData.start_date);
-    //         payload.append("end_date", formData.end_date);
-    //         payload.append("description", formData.description);
-
-    //         // Hanya kirim file jika ada file baru
-    //         if (formData.contract_file) {
-    //             payload.append("contract_file", formData.contract_file);
-    //         }
-
-    //         await axios.put(`${process.env.REACT_APP_API_URL}/contracts/${id}`, payload, {
-    //             headers: {
-    //                 "Content-Type": "multipart/form-data"
-    //             }
-    //         });
-
-    //         Swal.fire({
-    //             icon: "success",
-    //             title: "Berhasil",
-    //             text: "Kontrak berhasil diperbarui"
-    //         });
-    //     } catch (error) {
-    //         Swal.fire({
-    //             icon: "error",
-    //             title: "Gagal",
-    //             text: "Terjadi kesalahan saat menyimpan"
-    //         });
-    //     }
-    // };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true); // tampilkan loading
 
         const today = new Date().toISOString().split("T")[0]; // format YYYY-MM-DD
         const isActive = formData.end_date >= today;
 
+        if (isActive) {
+            if (formData.client_id === "other") {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Klien Tidak Valid",
+                    text: "Kontrak ini bersifat aktif. Harap pilih perusahaan klien yang tersedia."
+                });
+                return;
+            }
+
+            // Cek kontrak aktif lain
+            const check = await axios.get(`${process.env.REACT_APP_API_URL}/contracts-check-active?t=${talentId}&exclude=${id}`);
+            if (check.data.isActive) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Kontrak Aktif Ganda",
+                    text: "Periksa kembali tanggal berakhir. Terdapat kontrak lain yang juga bersifat aktif untuk talent ini."
+                });
+                return;
+            }
+        } else {
+            if (formData.client_id === "other" && !formData.description?.trim()) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Deskripsi Wajib Diisi",
+                    text: "Harap isi deskripsi jika memilih kontrak ini bersifat riwayat kerja dan perusahaan tidak terdaftar dalam sistem."
+                });
+                return;
+            }
+        }
+
+        // Kirim form jika semua valid
         try {
-            if (isActive) {
-                if (formData.client_id === "other") {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Klien Tidak Valid",
-                        text: "Kontrak ini bersifat aktif. Harap pilih perusahaan klien yang tersedia."
-                    });
-                    setLoading(false);
-                    return;
-                }
-
-                // Cek kontrak aktif lain
-                const check = await axios.get(`${process.env.REACT_APP_API_URL}/contracts-check-active?t=${talentId}&exclude=${id}`);
-                if (check.data.isActive) {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Kontrak Aktif Ganda",
-                        text: "Periksa kembali tanggal berakhir. Terdapat kontrak lain yang juga bersifat aktif untuk talent ini."
-                    });
-                    setLoading(false);
-                    return;
-                }
-            } else {
-                if (formData.client_id === "other" && !formData.description?.trim()) {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Deskripsi Wajib Diisi",
-                        text: "Harap isi deskripsi jika memilih kontrak ini bersifat riwayat kerja dan perusahaan tidak terdaftar dalam sistem."
-                    });
-                    setLoading(false);
-                    return;
-                }
-            }
-
-            // Kirim form jika semua valid
-            const payload = new FormData();
-            payload.append("client_id", formData.client_id);
-            payload.append("salary", formData.salary);
-            payload.append("start_date", formData.start_date);
-            payload.append("end_date", formData.end_date);
-            payload.append("description", formData.description);
-
-            if (formData.contract_file) {
-                payload.append("contract_file", formData.contract_file);
-            }
-
-            await axios.put(`${process.env.REACT_APP_API_URL}/contracts/${id}`, payload, {
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                }
-            });
-
+            await axios.put(`${process.env.REACT_APP_API_URL}/contracts/${id}`, formData);
             Swal.fire({
                 icon: "success",
                 title: "Berhasil",
                 text: "Kontrak berhasil diperbarui"
             });
-
-            // Reload data kontrak terbaru tanpa reload full page
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/contracts/${id}`);
-            const data = res.data;
-            setFormData({
-                client_id: data.client_id === 0 ? "other" : data.client_id,
-                salary: data.salary,
-                start_date: data.start_date?.slice(0, 10) || "",
-                end_date: data.end_date?.slice(0, 10) || "",
-                description: data.description || "",
-                file_link: data.file_link,
-            });
-            setTalentId(data.talent_id);
-
-            // Reset file input supaya kosong
-            if (fileInputRef.current) {
-                fileInputRef.current.value = "";
-            }
         } catch (error) {
             Swal.fire({
                 icon: "error",
                 title: "Gagal",
                 text: "Terjadi kesalahan saat menyimpan"
             });
-        } finally {
-            setLoading(false); // sembunyikan loading
         }
     };
 
@@ -311,13 +189,9 @@ const KaryawanKontrakDetail = () => {
         }
     };
 
-    const handleFileChange = (e) => {
-        setFormData(prev => ({ ...prev, contract_file: e.target.files[0] }));
-    };
-
     return (
         <React.Fragment>
-            <Sidebar activeMenu={8} />
+            <Sidebar activeMenu={4} />
             <main className="app-main">
                 <div className="app-content-header container-fluid">
                     <h3 className="mb-3">Rincian Kontrak Kerja</h3>
@@ -333,13 +207,6 @@ const KaryawanKontrakDetail = () => {
                     <div className="tab-content mt-3">
                         {activeTab === "detail" && (
                             <div className="card p-3">
-                                <div className="mb-4 row">
-                                    <div className="col-sm-12">
-                                        <h5>
-                                            {talent.name ? `${talent.name} - ${talent.talent_category?.name || ""}` : "Memuat..."}
-                                        </h5>
-                                    </div>
-                                </div>
                                 <form onSubmit={handleSubmit}>
                                     <div className="mb-3 row">
                                         <label className="col-sm-3 col-form-label">Perusahaan Klien</label>
@@ -354,7 +221,7 @@ const KaryawanKontrakDetail = () => {
                                                         client_id: selected ? selected.value : ""
                                                     }));
                                                 }}
-
+                                                isDisabled
                                             />
 
                                         </div>
@@ -369,25 +236,25 @@ const KaryawanKontrakDetail = () => {
                                                     const numericValue = e.target.value.replace(/[^\d]/g, "");
                                                     setFormData({ ...formData, salary: numericValue });
                                                 }}
-                                                required />
+                                                disabled />
                                         </div>
                                     </div>
                                     <div className="mb-3 row">
                                         <label className="col-sm-3 col-form-label">Tanggal Mulai</label>
                                         <div className="col-sm-9">
-                                            <input type="date" name="start_date" className="form-control" value={formData.start_date} onChange={handleChange} required />
+                                            <input type="date" name="start_date" className="form-control" value={formData.start_date} onChange={handleChange} disabled />
                                         </div>
                                     </div>
                                     <div className="mb-3 row">
                                         <label className="col-sm-3 col-form-label">Tanggal Berakhir</label>
                                         <div className="col-sm-9">
-                                            <input type="date" name="end_date" className="form-control" value={formData.end_date} onChange={handleChange} required />
+                                            <input type="date" name="end_date" className="form-control" value={formData.end_date} onChange={handleChange} disabled />
                                         </div>
                                     </div>
                                     <div className="mb-3 row">
                                         <label className="col-sm-3 col-form-label">Catatan</label>
                                         <div className="col-sm-9">
-                                            <textarea name="description" className="form-control" value={formData.description} onChange={handleChange} rows={3} />
+                                            <textarea name="description" className="form-control" value={formData.description} onChange={handleChange} rows={3} disabled />
                                         </div>
                                     </div>
                                     <div className="row mb-3">
@@ -401,24 +268,12 @@ const KaryawanKontrakDetail = () => {
                                             >
                                                 {formData.file_link}
                                             </a>
-
-                                            <input
-                                                type="file"
-                                                ref={fileInputRef}
-                                                accept="application/pdf"
-                                                className="form-control"
-                                                onChange={handleFileChange}
-
-                                            />
-                                            <small className="text-muted d-block mt-1">
-                                                ⚠️ Upload file baru akan <strong>menghapus file sebelumnya</strong> secara otomatis.
-                                            </small>
                                         </div>
                                     </div>
                                     <div className="row mb-3">
                                         <label className="col-sm-3 col-form-label"></label>
                                         <div className="col-sm-9">
-                                            <button type="submit" className="btn btn-success">Simpan</button>
+                                            {/* <button type="submit" className="btn btn-success" >Simpan</button> */}
                                         </div>
                                     </div>
 
@@ -483,4 +338,4 @@ const KaryawanKontrakDetail = () => {
     );
 };
 
-export default KaryawanKontrakDetail;
+export default PKKontrakDetail;

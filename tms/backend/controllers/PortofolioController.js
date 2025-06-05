@@ -8,6 +8,8 @@ import sequelize from "../config/Database.js";
 import User from "../models/UserModel.js";
 import fs from "fs";
 import Talent from "../models/TalentModel.js";
+import { promisify } from "util";
+const unlinkAsync = promisify(fs.unlink);
 
 const getResourceType = (mimetype) => {
     if (mimetype.startsWith("image/")) return "image";
@@ -172,24 +174,73 @@ export const updateTalentPortofolioDescription = async (req, res) => {
             return res.status(404).json({ message: "Portofolio tidak ditemukan" });
         }
 
-        const oldDescription = portofolio.description;
+        // Simpan perubahan yang ada
+        const updatedFields = {};
+        const oldValues = {};
         const updatedBy = req.session.userId;
 
-        await portofolio.update({ description }, { transaction });
+        if (description !== undefined && description != portofolio.description) {
+            updatedFields.description = description;
+            oldValues.description = portofolio.description;
+        }
 
-        await TalentPortofolioLog.create({
-            talent_portofolio_id: id,
-            createdby: updatedBy,
-            ip: requestIp.getClientIp(req),
-            changes: JSON.stringify({
-                action: "Description Updated",
-                fields: ["description"],
-                values: {
-                    old: oldDescription,
-                    new: description
+        // Handle upload file ke Cloudinary jika ada file baru
+        if (req.file) {
+            console.log("1");
+            // Hapus file lama di Cloudinary jika ada dan bukan null/empty
+            if (portofolio.public_id) {
+                console.log("2");
+                try {
+                    console.log("3");
+                    await cloudinary.uploader.destroy(portofolio.public_id, {
+                        resource_type: portofolio.resource_type || "raw", // default fallback
+                        invalidate: true,
+                    });
+                } catch (err) {
+                    console.log("4");
+                    console.error("Gagal hapus file lama di Cloudinary:", err);
                 }
-            }),
-        }, { transaction });
+            }
+
+            console.log("5");
+            const generatedPublicId = `portofolio_${uuidv4()}`;
+            const resourceType = getResourceType(req.file.mimetype);
+            // Upload file baru
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: "portofolio",
+                public_id: generatedPublicId,
+                resource_type: resourceType,
+            });
+
+            updatedFields.file_link = result.secure_url;
+            updatedFields.resource_type = result.resource_type;
+            updatedFields.public_id = result.public_id;
+            oldValues.file_link = portofolio.file_link;
+            oldValues.resource_type = portofolio.resource_type;
+            oldValues.public_id = portofolio.public_id;
+
+
+            // Hapus file lokal setelah upload
+            await unlinkAsync(req.file.path);
+        }
+
+        await portofolio.update(updatedFields, { transaction });
+
+
+        const changedFields = Object.keys(updatedFields);
+        if (changedFields.length > 0) {
+            await TalentPortofolioLog.create({
+                talent_portofolio_id: id,
+                createdby: updatedBy,
+                ip: requestIp.getClientIp(req),
+                changes: JSON.stringify({
+                    action: "Update Portofolio",
+                    fields: changedFields,
+                    oldValues,
+                    newValues: updatedFields,
+                }),
+            }, { transaction });
+        }
 
         await transaction.commit();
         res.status(200).json({ message: "Deskripsi berhasil diperbarui" });
@@ -214,6 +265,7 @@ export const deleteTalentPortofolio = async (req, res) => {
         if (portofolio.public_id) {
             await cloudinary.uploader.destroy(portofolio.public_id, {
                 resource_type: portofolio.resource_type || "raw", // default fallback
+                invalidate: true,
             });
         }
 

@@ -11,6 +11,9 @@ import requestIp from "request-ip";
 import Client from "../models/ClientModel.js";
 import User from "../models/UserModel.js";
 import { Op } from "sequelize";
+import path from "path";
+import { promisify } from "util";
+const unlinkAsync = promisify(fs.unlink);
 
 const getResourceType = (mimetype) => {
   if (mimetype.startsWith("image/")) return "image";
@@ -278,11 +281,87 @@ export const getTalentWorkHistoryLog = async (req, res) => {
   }
 };
 
+// export const updateTalentContract = async (req, res) => {
+//   const transaction = await sequelize.transaction();
+//   try {
+//     const contractId = req.params.id;
+//     const { client_id, salary, start_date, end_date, note } = req.body;
+//     const updatedby = req.session.userId;
+
+//     // Ambil kontrak lama
+//     const oldContract = await TalentWorkHistory.findByPk(contractId, { transaction });
+//     if (!oldContract) {
+//       return res.status(404).json({ message: "Kontrak tidak ditemukan" });
+//     }
+
+//     // Update kontrak
+//     await TalentWorkHistory.update({
+//       client_id,
+//       salary,
+//       start_date,
+//       end_date,
+//       note,
+//       updatedby,
+//     }, {
+//       where: { id: contractId },
+//       transaction,
+//     });
+
+//     const talentId = oldContract.talent_id;
+//     const today = new Date().toISOString().slice(0, 10);
+
+//     // Cek kontrak aktif terbaru (end_date >= hari ini)
+//     const latestActive = await TalentWorkHistory.findOne({
+//       where: {
+//         talent_id: talentId,
+//         end_date: { [Op.gte]: today },
+//       },
+//       order: [['end_date', 'DESC']],
+//       transaction,
+//     });
+
+//     if (latestActive) {
+//       await Talent.update({
+//         client_id: latestActive.client_id,
+//         status: 2,
+//         updatedby,
+//       }, {
+//         where: { id: talentId },
+//         transaction,
+//       });
+//     } else {
+//       await Talent.update({
+//         client_id: 0,
+//         status: 1,
+//         updatedby,
+//       }, {
+//         where: { id: talentId },
+//         transaction,
+//       });
+//     }
+
+//     await transaction.commit();
+//     return res.json({ message: "Kontrak berhasil diperbarui." });
+
+//   } catch (error) {
+//     await transaction.rollback();
+//     console.error("Error updating contract:", error);
+//     return res.status(500).json({ message: "Gagal memperbarui kontrak" });
+//   }
+// };
+
+const formatDate = (date) => {
+  if (!date) return null;
+  if (typeof date === "string" && date.length >= 10) return date.slice(0, 10);
+  if (date instanceof Date) return date.toISOString().slice(0, 10);
+  return null;
+};
+
 export const updateTalentContract = async (req, res) => {
   const transaction = await sequelize.transaction();
+
   try {
     const contractId = req.params.id;
-    const { client_id, salary, start_date, end_date, note } = req.body;
     const updatedby = req.session.userId;
 
     // Ambil kontrak lama
@@ -291,50 +370,162 @@ export const updateTalentContract = async (req, res) => {
       return res.status(404).json({ message: "Kontrak tidak ditemukan" });
     }
 
+    // Data update dari req.body
+    const { client_id, salary, start_date, end_date, note, description } = req.body;
+
+    // Simpan perubahan yang ada
+    const updatedFields = {};
+    const oldValues = {};
+
+    // Format tanggal ke YYYY-MM-DD (misal function formatDate)
+    const oldStartDate = formatDate(oldContract.start_date);
+    const oldEndDate = formatDate(oldContract.end_date);
+
+    if (client_id !== undefined && client_id != oldContract.client_id) {
+      updatedFields.client_id = client_id;
+      oldValues.client_id = oldContract.client_id;
+    }
+    if (salary !== undefined && salary != oldContract.salary) {
+      updatedFields.salary = salary;
+      oldValues.salary = oldContract.salary;
+    }
+    if (start_date !== undefined && start_date != oldStartDate) {
+      updatedFields.start_date = start_date;
+      oldValues.start_date = oldStartDate;
+    }
+    if (end_date !== undefined && end_date != oldEndDate) {
+      updatedFields.end_date = end_date;
+      oldValues.end_date = oldEndDate;
+    }
+    if (description !== undefined && description != oldContract.description) {
+      updatedFields.description = description;
+      oldValues.description = oldContract.description;
+    }
+
+    // Handle upload file ke Cloudinary jika ada file baru
+    if (req.file) {
+      // Hapus file lama di Cloudinary jika ada dan bukan null/empty
+      if (oldContract.public_id) {
+        try {
+          await cloudinary.uploader.destroy(oldContract.public_id, {
+            resource_type: oldContract.resource_type || "raw", // default fallback
+            invalidate: true,
+          });
+        } catch (err) {
+          console.error("Gagal hapus file lama di Cloudinary:", err);
+        }
+      }
+
+      const generatedPublicId = `kontrak_${uuidv4()}`;
+      const resourceType = getResourceType(req.file.mimetype);
+      // Upload file baru
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "kontrak",
+        public_id: generatedPublicId,
+        resource_type: resourceType,
+      });
+
+      updatedFields.file_link = result.secure_url;
+      updatedFields.resource_type = result.resource_type;
+      updatedFields.public_id = result.public_id;
+      oldValues.file_link = oldContract.file_link;
+      oldValues.resource_type = oldContract.resource_type;
+      oldValues.public_id = oldContract.public_id;
+
+      // Hapus file lokal setelah upload
+      await unlinkAsync(req.file.path);
+    }
+
     // Update kontrak
-    await TalentWorkHistory.update({
-      client_id,
-      salary,
-      start_date,
-      end_date,
-      note,
-      updatedby,
-    }, {
+    await TalentWorkHistory.update(updatedFields, {
       where: { id: contractId },
       transaction,
     });
 
+    // Simpan log perubahan kontrak jika ada perubahan selain updatedby
+    const changedFields = Object.keys(updatedFields);
+    if (changedFields.length > 0) {
+      await TalentWorkHistoryLog.create({
+        talent_work_history_id: contractId,
+        changes: JSON.stringify({
+          action: "Update Contract",
+          fields: changedFields,
+          oldValues,
+          newValues: updatedFields,
+        }),
+        createdby: updatedby,
+        ip: requestIp.getClientIp(req),
+      }, { transaction });
+    }
+
+    // Update Talent berdasarkan kontrak aktif terbaru
     const talentId = oldContract.talent_id;
     const today = new Date().toISOString().slice(0, 10);
 
-    // Cek kontrak aktif terbaru (end_date >= hari ini)
     const latestActive = await TalentWorkHistory.findOne({
       where: {
         talent_id: talentId,
         end_date: { [Op.gte]: today },
       },
-      order: [['end_date', 'DESC']],
+      order: [["end_date", "DESC"]],
       transaction,
     });
 
+    let talentOldValues = {};
+    let talentUpdatedFields = {};
+
     if (latestActive) {
-      await Talent.update({
-        client_id: latestActive.client_id,
-        status: 2,
-        updatedby,
-      }, {
-        where: { id: talentId },
-        transaction,
-      });
+      const talent = await Talent.findByPk(talentId, { transaction });
+      if (!talent) throw new Error("Talent tidak ditemukan");
+
+      if (talent.client_id !== latestActive.client_id) {
+        talentUpdatedFields.client_id = latestActive.client_id;
+        talentOldValues.client_id = talent.client_id;
+      }
+      if (talent.status !== 2) {
+        talentUpdatedFields.status = 2;
+        talentOldValues.status = talent.status;
+      }
+
+      if (Object.keys(talentUpdatedFields).length > 0) {
+        await Talent.update(talentUpdatedFields, { where: { id: talentId }, transaction });
+
+        await TalentLog.create({
+          talent_id: talentId,
+          changes: JSON.stringify({
+            action: "Update Talent via Contract Update",
+            fields: Object.keys(talentUpdatedFields).filter(f => f !== "updatedby"),
+            oldValues: talentOldValues,
+            newValues: talentUpdatedFields,
+          }),
+          createdby: updatedby,
+          ip: requestIp.getClientIp(req),
+        }, { transaction });
+      }
     } else {
-      await Talent.update({
-        client_id: 0,
-        status: 1,
-        updatedby,
-      }, {
-        where: { id: talentId },
-        transaction,
-      });
+      const talent = await Talent.findByPk(talentId, { transaction });
+      if (!talent) throw new Error("Talent tidak ditemukan");
+
+      if (talent.client_id !== 0 || talent.status !== 1) {
+        talentOldValues.client_id = talent.client_id;
+        talentOldValues.status = talent.status;
+        talentUpdatedFields.client_id = 0;
+        talentUpdatedFields.status = 1;
+
+        await Talent.update(talentUpdatedFields, { where: { id: talentId }, transaction });
+
+        await TalentLog.create({
+          talent_id: talentId,
+          changes: JSON.stringify({
+            action: "Update Talent via Contract Update",
+            fields: Object.keys(talentUpdatedFields).filter(f => f !== "updatedby"),
+            oldValues: talentOldValues,
+            newValues: talentUpdatedFields,
+          }),
+          createdby: updatedby,
+          ip: requestIp.getClientIp(req),
+        }, { transaction });
+      }
     }
 
     await transaction.commit();
@@ -346,6 +537,7 @@ export const updateTalentContract = async (req, res) => {
     return res.status(500).json({ message: "Gagal memperbarui kontrak" });
   }
 };
+
 
 export const checkActiveContract = async (req, res) => {
   try {
@@ -383,5 +575,56 @@ export const checkActiveContract = async (req, res) => {
   }
 };
 
+export const getContracts = async (req, res) => {
+  try {
+    const { search = "", sortColumn = "id", sortOrder = "asc" } = req.query;
+
+    const whereClient = search
+      ? {
+        name: { [Op.iLike]: `%${search}%` },
+      }
+      : {};
+
+    const whereTalent = search
+      ? {
+        name: { [Op.iLike]: `%${search}%` },
+      }
+      : {};
+
+    // Kalau search di id atau posisi, bisa dibuat OR
+    const whereContract = search
+      ? {
+        [Op.or]: [
+          { id: { [Op.like]: `%${search}%` } },
+          { position: { [Op.iLike]: `%${search}%` } }, // kalau field position ada di sini
+        ],
+      }
+      : {};
+
+    const contracts = await TalentWorkHistory.findAll({
+      where: whereContract,
+      include: [
+        {
+          model: Client,
+          where: whereClient,
+          required: true,
+          attributes: ["id", "name"],
+        },
+        {
+          model: Talent,
+          where: whereTalent,
+          required: true,
+          attributes: ["id", "name"],
+        }
+      ],
+      order: [[sortColumn, sortOrder]],
+    });
+
+    res.json(contracts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Gagal mengambil data kontrak" });
+  }
+};
 
 

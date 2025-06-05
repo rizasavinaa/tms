@@ -1,15 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { LogOut, reset } from "../features/authSlice";
+import { LogOut, reset, getMe } from "../features/authSlice";
 import Swal from "sweetalert2";
 
-
-function Sidebarpekerjakreatif() {
+function Sidebarpekerjakreatif({ activeMenu }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const reduxUser = useSelector((state) => state.auth.user);
+    const talent_id = reduxUser?.talent_id;
+    useEffect(() => {
+        if (!reduxUser) {
+            dispatch(getMe()); // Panggil API untuk mendapatkan user jika belum ada
+        }
+    }, [dispatch, reduxUser]);
+
     const logout = () => {
         Swal.fire({
             title: "Yakin ingin logout?",
@@ -32,6 +38,9 @@ function Sidebarpekerjakreatif() {
             }
         });
     };
+
+    const isActive = (menuId) => (menuId === activeMenu ? "nav-link active" : "nav-link");
+    const isOpen = (menuId) => (menuId === activeMenu ? "menu-open" : "");
     return (
         <React.Fragment>
             {/*begin::Header*/}
@@ -83,7 +92,7 @@ function Sidebarpekerjakreatif() {
                 {/*begin::Sidebar Brand*/}
                 <div className="sidebar-brand">
                     {/*begin::Brand Link*/}
-                    <a href="./index.html" className="brand-link">
+                    <a href="/pekerjakreatif" className="brand-link">
                         {/*begin::Brand Image*/}
                         <img src="../../dist/assets/img/logopers.png" alt="Logo" className="brand-image" />
                         {/*end::Brand Image*/}
@@ -99,88 +108,61 @@ function Sidebarpekerjakreatif() {
                     <nav className="mt-2">
                         {/*begin::Sidebar Menu*/}
                         <ul className="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
-                            <li className="nav-item">
-                                <a href="#" className="nav-link">
-                                    <i className="nav-icon fa fa-solid fa-users" />
+                            <li className={`nav-item ${isOpen(1)}`}>
+                                <a href="/pekerjakreatif/data-diri" className="nav-link">
+                                    <i className="nav-icon fa fa-solid fa-user" />
                                     <p>
-                                        Pekerja Kreatif
-                                        <i className="nav-arrow bi bi-chevron-right" />
+                                        Data Diri
                                     </p>
                                 </a>
-                                <ul className="nav nav-treeview">
-                                    <li className="nav-item">
-                                        <a href="./index.html" className="nav-link">
-                                            <i className="nav-icon bi" />
-                                            <p>Registrasi</p>
-                                        </a>
-                                    </li>
-                                    <li className="nav-item">
-                                        <a href="./index.html" className="nav-link">
-                                            <i className="nav-icon bi" />
-                                            <p>Portofolio</p>
-                                        </a>
-                                    </li>
-                                    <li className="nav-item">
-                                        <a href="./index.html" className="nav-link">
-                                            <i className="nav-icon bi" />
-                                            <p>Posisi</p>
-                                        </a>
-                                    </li>
-                                    <li className="nav-item">
-                                        <a href="./index.html" className="nav-link">
-                                            <i className="nav-icon bi" />
-                                            <p>Registrasi Posisi</p>
-                                        </a>
-                                    </li>
-                                </ul>
                             </li>
-                            <li className="nav-item">
-                                <a href="#" className="nav-link">
-                                    <i className="nav-icon fa fa-solid fa-building" />
+                            <li className={`nav-item ${isOpen(2)}`}>
+                                <a href="/pekerjakreatif/porto-pk" className="nav-link">
+                                    <i className="nav-icon fa fa-solid fa-folder" />
                                     <p>
-                                        Perusahaan Klien
-                                        <i className="nav-arrow bi bi-chevron-right" />
+                                        Portofolio
                                     </p>
                                 </a>
-                                <ul className="nav nav-treeview">
-                                    <li className="nav-item">
-                                        <a href="./index.html" className="nav-link">
-                                            <i className="nav-icon bi" />
-                                            <p>Registrasi</p>
-                                        </a>
-                                    </li>
-                                </ul>
                             </li>
-                            <li className="nav-item">
-                                <a href="#" className="nav-link">
+                            <li className={`nav-item ${isOpen(3)}`}>
+                                <a href={`/pekerjakreatif/porto-register/${talent_id}`} className="nav-link">
+                                    <i className="nav-icon fa fa-solid fa-file-circle-plus" />
+                                    <p>
+                                        Registrasi Portofolio
+                                    </p>
+                                </a>
+                            </li>
+                            <li className={`nav-item ${isOpen(4)}`}>
+                                <a href="/pekerjakreatif/kontrak" className="nav-link">
                                     <i className="nav-icon fa fa-solid fa-handshake" />
                                     <p>
                                         Kontrak
                                     </p>
                                 </a>
                             </li>
-                            <li className="nav-item">
-                                <a href="#" className="nav-link">
+                            <li className={`nav-item ${isOpen(5)}`}>
+                                <a href="/pekerjakreatif/bukti-kerja" className="nav-link">
                                     <i className="nav-icon fa fa-solid fa-file" />
                                     <p>
-                                        Laporan
-                                        <i className="nav-arrow bi bi-chevron-right" />
+                                        Bukti Kerja
                                     </p>
                                 </a>
-                                <ul className="nav nav-treeview">
-                                    <li className="nav-item">
-                                        <a href="./index.html" className="nav-link">
-                                            <i className="nav-icon bi" />
-                                            <p>Retensi Pekerja</p>
-                                        </a>
-                                    </li>
-                                    <li className="nav-item">
-                                        <a href="./index.html" className="nav-link">
-                                            <i className="nav-icon bi" />
-                                            <p>Bukti Kerja &amp; Penilaian</p>
-                                        </a>
-                                    </li>
-                                </ul>
+                            </li>
+                            <li className={`nav-item ${isOpen(6)}`}>
+                                <a href="/pekerjakreatif/bukti-kerja-register" className="nav-link">
+                                    <i className="nav-icon fa fa-solid fa-file-circle-plus" />
+                                    <p>
+                                        Registrasi Bukti Kerja
+                                    </p>
+                                </a>
+                            </li>
+                            <li className={`nav-item ${isOpen(9)}`}>
+                                <a href="/pekerjakreatif/pembayaran" className="nav-link">
+                                    <i className="nav-icon fa fa-solid fa-file" />
+                                    <p>
+                                        Pembayaran Gaji
+                                    </p>
+                                </a>
                             </li>
                         </ul>
                         {/*end::Sidebar Menu*/}

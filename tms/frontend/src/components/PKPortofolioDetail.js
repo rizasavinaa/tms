@@ -3,18 +3,19 @@ import { useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
 import useAuthRedirect from "../features/authRedirect";
-import Sidebar from "./sidebarkaryawan";
+import Sidebar from "./sidebarpekerjakreatif";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 
-const KaryawanPortoDetail = () => {
-    useAuthRedirect(17);
+
+const PKDataDiri = () => {
+    useAuthRedirect(16);
     const { id } = useParams();
     const [porto, setPorto] = useState(null);
     const [formData, setFormData] = useState({ description: "" });
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState("detail");
-    const [talent, setTalent] = useState({});
+
     // Untuk log
     const [logData, setLogData] = useState([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
@@ -26,16 +27,11 @@ const KaryawanPortoDetail = () => {
     useEffect(() => {
         axios.get(`${process.env.REACT_APP_API_URL}/portopks/${id}`)
             .then(response => {
-                const portoData = response.data;
-                setPorto(portoData);
-                setFormData({ description: portoData.description || "" });
-
-                // ✅ Fetch talent berdasarkan talent_id dari porto
-                if (portoData.talent_id) {
-                    axios.get(`${process.env.REACT_APP_API_URL}/talents/${portoData.talent_id}`)
-                        .then(res => setTalent(res.data))
-                        .catch(error => console.error("Error fetch talent:", error));
-                }
+                setPorto(response.data);
+                setFormData({
+                    description: response.data.description || "",
+                    file_link: response.data.file_link || "",
+                });
             })
             .catch(error => console.error("Gagal mengambil data portofolio", error));
     }, [id]);
@@ -98,6 +94,8 @@ const KaryawanPortoDetail = () => {
             })
             .finally(() => setLoading(false));
     };
+
+
 
     const handleFileChange = (e) => {
         setFormData(prev => ({ ...prev, porto_file: e.target.files[0] }));
@@ -182,13 +180,6 @@ const KaryawanPortoDetail = () => {
                         <div className="tab-content mt-3">
                             {activeTab === "detail" && porto && (
                                 <div className="card p-3">
-                                    <div className="mb-4 row">
-                                        <div className="col-sm-12">
-                                            <h5>
-                                                {talent.name ? `${talent.name} - ${talent.talent_category?.name || ""}` : "Memuat..."}
-                                            </h5>
-                                        </div>
-                                    </div>
                                     <form onSubmit={handleSubmit}>
                                         <div className="row mb-3">
                                             <label className="col-sm-3 col-form-label">Nama</label>
@@ -221,6 +212,7 @@ const KaryawanPortoDetail = () => {
                                                 >
                                                     {porto.file_link}
                                                 </a>
+
                                                 <input
                                                     type="file"
                                                     name="porto_file"
@@ -310,4 +302,4 @@ const KaryawanPortoDetail = () => {
     );
 };
 
-export default KaryawanPortoDetail;
+export default PKDataDiri;

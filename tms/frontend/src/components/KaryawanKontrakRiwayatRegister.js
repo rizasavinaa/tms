@@ -10,7 +10,7 @@ import { formatCurrency } from "../utils/format";
 import useAuthRedirect from "../features/authRedirect";
 
 const KaryawanKontrakRiwayatRegister = () => {
-    useAuthRedirect(19);
+    useAuthRedirect(26);
     const { id } = useParams(); // ID talent
     const [talent, setTalent] = useState({});
     const [clients, setClients] = useState([]);

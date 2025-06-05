@@ -2,7 +2,7 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/Database.js"; // Sesuaikan path ini dengan konfigurasi DB kamu
 import User from "./UserModel.js"; // Import relasi ke model User
 
-const Client = sequelize.define("Client", {
+const Client = sequelize.define("client", {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,

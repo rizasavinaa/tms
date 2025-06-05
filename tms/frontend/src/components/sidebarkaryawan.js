@@ -92,7 +92,7 @@ function Sidebarkaryawan({ activeMenu }) {
                 {/*begin::Sidebar Brand*/}
                 <div className="sidebar-brand">
                     {/*begin::Brand Link*/}
-                    <a href="./index.html" className="brand-link">
+                    <a href="./" className="brand-link">
                         {/*begin::Brand Image*/}
                         <img src="../../dist/assets/img/logopers.png" alt="Logo" className="brand-image" />
                         {/*end::Brand Image*/}
@@ -168,7 +168,7 @@ function Sidebarkaryawan({ activeMenu }) {
                                     </p>
                                 </a>
                             </li>
-                            <li className="nav-item">
+                            <li className={`nav-item ${isOpen(9) || isOpen(10)}`}>
                                 <a href="#" className="nav-link">
                                     <i className="nav-icon fa fa-solid fa-file" />
                                     <p>
@@ -178,13 +178,13 @@ function Sidebarkaryawan({ activeMenu }) {
                                 </a>
                                 <ul className="nav nav-treeview">
                                     <li className="nav-item">
-                                        <a href="./index.html" className="nav-link">
+                                        <a href="/karyawan/laporan-retensi" className={isActive(9)}>
                                             <i className="nav-icon bi" />
                                             <p>Retensi Pekerja</p>
                                         </a>
                                     </li>
                                     <li className="nav-item">
-                                        <a href="./index.html" className="nav-link">
+                                        <a href="./index.html" className={isActive(10)}>
                                             <i className="nav-icon bi" />
                                             <p>Bukti Kerja &amp; Penilaian</p>
                                         </a>

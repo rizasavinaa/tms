@@ -3,8 +3,11 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { formatRupiah } from "../utils/format";
+import { useSelector } from "react-redux";
 
 const KaryawanKontrakListByTalent = ({ talentId }) => {
+  const { user } = useSelector((state) => state.auth);
+  const role = user?.role_id;
   const [kontrak, setKontrak] = useState([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("client_name"); // default filter kolom
@@ -169,7 +172,7 @@ const KaryawanKontrakListByTalent = ({ talentId }) => {
                       <i className="fas fa-download"></i>
                     </a>
 
-                    <Link to={`/karyawan/kontrak/${k.id}`} className="btn btn-secondary btn-sm me-1">
+                    <Link  to={role === 2 ? `/karyawan/kontrak/${k.id}` : `/pekerjakreatif/kontrak/${k.id}`} className="btn btn-secondary btn-sm me-1">
                       Lihat Detail
                     </Link>
                   </td>

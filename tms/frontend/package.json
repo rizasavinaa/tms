@@ -12,6 +12,7 @@
     "bulma": "^1.0.3",
     "dangerously-set-inner-html": "^2.0.1",
     "file-saver": "^2.0.5",
+    "moment": "^2.30.1",
     "overlayscrollbars": "^2.11.1",
     "react": "^19.0.0",
     "react-apexcharts": "^1.7.0",
