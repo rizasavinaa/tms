@@ -22,6 +22,8 @@ const KaryawanKontrakRiwayatRegister = lazy(() => import("../components/Karyawan
 const KaryawanKontrakList = lazy(() => import("../components/KaryawanKontrakList"));
 const KaryawanKontrakDetail = lazy(() => import("../components/KaryawanKontrakDetail"));
 const KaryawanReportRetensi = lazy(() => import("../components/KaryawanReportRetensi"));
+const KaryawanBuktiKerjaDetail = lazy(() => import("../components/KaryawanBuktiKerjaDetail"));
+const KaryawanReportBuktiKerja = lazy(() => import("../components/KaryawanReportBuktiKerja"));
 
 const KaryawanRoutes = () => {
   return (
@@ -46,6 +48,8 @@ const KaryawanRoutes = () => {
         <Route path="/kontrak" element={<KaryawanKontrakList />} />
         <Route path="/kontrak/:id" element={<KaryawanKontrakDetail />} />
         <Route path="/laporan-retensi" element={<KaryawanReportRetensi />} />
+        <Route path="/bukti-kerja/:id" element={<KaryawanBuktiKerjaDetail />} />
+        <Route path="/laporan-bukti-kerja" element={<KaryawanReportBuktiKerja />} />
         <Route path="*" element={<NotFound />} /> {/* Tambahkan ini */}
       </Routes>
     </Suspense>

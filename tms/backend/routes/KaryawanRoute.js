@@ -42,7 +42,8 @@ import{
     getTalentWorkHistoryLog,
     updateTalentContract,
     checkActiveContract,
-    getContracts
+    getContracts,
+    checkContractEditable
 } from "../controllers/TalentWorkHistoryController.js";
 import upload from "../middleware/upload.js";
 import {
@@ -54,7 +55,8 @@ import {
     getTalentWorkProofLog,
     getTalentWorkProofByTalentId,
     checkOverlapWorkProof,
-    exportReportPembayaran
+    exportReportPembayaran,
+    exportTalentWorkProofExcel
 } from "../controllers/TalentWorkProofController.js";
 
 
@@ -103,4 +105,6 @@ router.delete("/workproofs/:id", deleteTalentWorkProof);
 router.post("/workproofs/check-overlap", checkOverlapWorkProof);
 router.get("/workproofs/talent/:talent_id", getTalentWorkProofByTalentId);
 router.get("/report-payment-export", exportReportPembayaran);
+router.get("/report-bukti-kerja", exportTalentWorkProofExcel);
+router.get("/contracts/:id/editable", checkContractEditable);
 export default router;

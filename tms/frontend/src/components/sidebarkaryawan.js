@@ -184,7 +184,7 @@ function Sidebarkaryawan({ activeMenu }) {
                                         </a>
                                     </li>
                                     <li className="nav-item">
-                                        <a href="./index.html" className={isActive(10)}>
+                                        <a href="/karyawan/laporan-bukti-kerja" className={isActive(10)}>
                                             <i className="nav-icon bi" />
                                             <p>Bukti Kerja &amp; Penilaian</p>
                                         </a>

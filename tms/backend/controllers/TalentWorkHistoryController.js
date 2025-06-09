@@ -4,6 +4,7 @@ import cloudinary from "../config/Cloudinary.js";
 import sequelize from "../config/Database.js";
 import TalentWorkHistory from "../models/TalentWorkHistoryModel.js";
 import TalentWorkHistoryLog from "../models/TalentWorkHistoryLogModel.js";
+import TalentWorkProof from "../models/TalentWorkProofModel.js";
 import Talent from "../models/TalentModel.js";
 import TalentLog from "../models/TalentLogModel.js";
 import TalentCategory from "../models/TalentCategoryModel.js";
@@ -627,4 +628,32 @@ export const getContracts = async (req, res) => {
   }
 };
 
+// Cek apakah kontrak bisa diedit
+export const checkContractEditable = async (req, res) => {
+    const { id } = req.params;
 
+    try {
+        // Cari bukti kerja berdasarkan talent_work_history_id
+        const existingProof = await TalentWorkProof.findOne({
+            where: { talent_work_history_id: id }
+        });
+
+        if (existingProof) {
+            return res.status(200).json({
+                hasProof: true,
+                message: "Kontrak tidak dapat diedit karena sudah memiliki bukti kerja."
+            });
+        }
+
+        return res.status(200).json({
+            editable: true,
+            message: "Kontrak masih dapat diedit."
+        });
+    } catch (error) {
+        console.error("Gagal cek kontrak:", error);
+        return res.status(500).json({
+            editable: false,
+            message: "Terjadi kesalahan pada server."
+        });
+    }
+};

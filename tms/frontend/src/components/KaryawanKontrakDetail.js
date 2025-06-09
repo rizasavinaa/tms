@@ -34,6 +34,21 @@ const KaryawanKontrakDetail = () => {
     const fileInputRef = useRef(null);
     const [talent, setTalent] = useState({});
 
+    const [isLocked, setIsLocked] = useState(false);
+
+    useEffect(() => {
+        const checkProof = async () => {
+            try {
+                const res = await axios.get(`${process.env.REACT_APP_API_URL}/contracts/${id}/editable`);
+                setIsLocked(res.data.hasProof);
+            } catch (error) {
+                console.error("Gagal cek bukti kerja:", error);
+            }
+        };
+        checkProof();
+    }, [id]);
+
+
     useEffect(() => {
         const fetchClients = async () => {
             try {
@@ -212,6 +227,15 @@ const KaryawanKontrakDetail = () => {
                 }
             }
 
+            if (isLocked) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Terkunci",
+                    text: "Kontrak ini tidak bisa diedit karena sudah memiliki bukti kerja terkait."
+                });
+                return;
+            }
+
             // Kirim form jika semua valid
             const payload = new FormData();
             payload.append("client_id", formData.client_id);
@@ -354,6 +378,7 @@ const KaryawanKontrakDetail = () => {
                                                         client_id: selected ? selected.value : ""
                                                     }));
                                                 }}
+                                                disabled={isLocked}
 
                                             />
 
@@ -369,25 +394,31 @@ const KaryawanKontrakDetail = () => {
                                                     const numericValue = e.target.value.replace(/[^\d]/g, "");
                                                     setFormData({ ...formData, salary: numericValue });
                                                 }}
+                                                disabled={isLocked}
                                                 required />
                                         </div>
                                     </div>
                                     <div className="mb-3 row">
                                         <label className="col-sm-3 col-form-label">Tanggal Mulai</label>
                                         <div className="col-sm-9">
-                                            <input type="date" name="start_date" className="form-control" value={formData.start_date} onChange={handleChange} required />
+                                            <input type="date" name="start_date" className="form-control" value={formData.start_date} onChange={handleChange}
+                                                disabled={isLocked}
+                                                required />
                                         </div>
                                     </div>
                                     <div className="mb-3 row">
                                         <label className="col-sm-3 col-form-label">Tanggal Berakhir</label>
                                         <div className="col-sm-9">
-                                            <input type="date" name="end_date" className="form-control" value={formData.end_date} onChange={handleChange} required />
+                                            <input type="date" name="end_date" className="form-control" value={formData.end_date} onChange={handleChange}
+                                                disabled={isLocked}
+                                                required />
                                         </div>
                                     </div>
                                     <div className="mb-3 row">
                                         <label className="col-sm-3 col-form-label">Catatan</label>
                                         <div className="col-sm-9">
-                                            <textarea name="description" className="form-control" value={formData.description} onChange={handleChange} rows={3} />
+                                            <textarea name="description" className="form-control" value={formData.description} onChange={handleChange} rows={3}
+                                                disabled={isLocked} />
                                         </div>
                                     </div>
                                     <div className="row mb-3">
@@ -408,6 +439,7 @@ const KaryawanKontrakDetail = () => {
                                                 accept="application/pdf"
                                                 className="form-control"
                                                 onChange={handleFileChange}
+                                                disabled={isLocked}
 
                                             />
                                             <small className="text-muted d-block mt-1">
@@ -418,7 +450,14 @@ const KaryawanKontrakDetail = () => {
                                     <div className="row mb-3">
                                         <label className="col-sm-3 col-form-label"></label>
                                         <div className="col-sm-9">
-                                            <button type="submit" className="btn btn-success">Simpan</button>
+                                            <button type="submit" className="btn btn-success" disabled={isLocked}>Simpan</button>
+                                            {isLocked ? (
+                                                <small className="text-muted d-block mt-1">
+                                                    ⚠️ Kontrak ini tidak bisa diedit karena sudah memiliki bukti kerja terkait.
+                                                </small>
+                                            ) : (
+                                               ""
+                                            )}
                                         </div>
                                     </div>
 
