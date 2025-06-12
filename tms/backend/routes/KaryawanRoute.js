@@ -27,7 +27,8 @@ import {
     exportTalents,
     getKaryawanDashboardStats,
     getRetentionReport,
-    getClientHomepageStats
+    getClientHomepageStats,
+    getPayrollHomepageStats
 } from "../controllers/KaryawanReportController.js";
 import {
     getClients,
@@ -60,7 +61,9 @@ import {
     exportReportPembayaran,
     exportTalentWorkProofExcel,
     getTalentWorkProofByClientId,
-    validateTalentWorkProof
+    validateTalentWorkProof,
+    updatePaymentStatus,
+    exportTalentWorkProofToExcel
 } from "../controllers/TalentWorkProofController.js";
 
 
@@ -116,4 +119,7 @@ router.get("/report-bukti-kerja", exportTalentWorkProofExcel);
 router.get("/contracts/:id/editable", checkContractEditable);
 router.get("/workproofs/client/:client_id", getTalentWorkProofByClientId);
 router.get("/client-homepage", getClientHomepageStats);
+router.patch("/workproofs/paid/:id",  updatePaymentStatus);
+router.get("/report-payroll", exportTalentWorkProofToExcel);
+router.get("/payroll-homepage", getPayrollHomepageStats);
 export default router;

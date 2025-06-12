@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import Sidebar from "./sidebarkaryawan";
+import Sidebar from "./sidebarpayroll";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { formatCurrency } from "../utils/format";
+import withReactContent from "sweetalert2-react-content";
 
-const KaryawanReportBuktiKerja = () => {
-    useAuthRedirect(28);
+const PayBuktiKerjaList = () => {
+    useAuthRedirect(33);
     const [proofs, setProofs] = useState([]);
     const [search, setSearch] = useState("");
     const [filter, setFilter] = useState("id");
@@ -22,6 +24,7 @@ const KaryawanReportBuktiKerja = () => {
     // Filter tanggal mulai dan berakhir
     const [filterStartDate, setFilterStartDate] = useState("");
     const [filterEndDate, setFilterEndDate] = useState("");
+    const MySwal = withReactContent(Swal);
 
     const validationStatusMap = {
         0: "New",
@@ -192,15 +195,56 @@ const KaryawanReportBuktiKerja = () => {
         }
     };
 
+    const handlePaymentProcessed = async (proofId) => {
+        const { value: date } = await Swal.fire({
+            title: "Tanggal Pembayaran",
+            html: `
+      <input type="date" id="payment-date" 
+        class="swal2-input" 
+        style="max-width: 250px; margin-top: 10px;" />
+    `,
+            showCancelButton: true,
+            confirmButtonText: "Proses Pembayaran",
+            focusConfirm: false,
+            preConfirm: () => {
+                const inputDate = document.getElementById("payment-date").value;
+                if (!inputDate) {
+                    Swal.showValidationMessage("Tanggal pembayaran wajib diisi");
+                }
+                return inputDate;
+            },
+        });
+
+
+        if (date) {
+            setLoading(true);
+            try {
+                await axios.patch(`${process.env.REACT_APP_API_URL}/workproofs/paid/${proofId}`, {
+                    payment_status: 1,
+                    payment_date: date,
+                });
+
+                Swal.fire("Berhasil", "Status pembayaran telah diperbarui", "success").then(() => {
+                    window.location.reload();
+                });
+            } catch (error) {
+                console.error("Gagal update:", error);
+                Swal.fire("Gagal", "Gagal memperbarui status pembayaran", "error");
+            } finally {
+                setLoading(false); // matikan loading
+            }
+        }
+    };
+
     return (
         <React.Fragment>
-            <Sidebar activeMenu={10} />
+            <Sidebar activeMenu={1} />
             <main className="app-main">
                 <div className="app-content-header">
                     <div className="container-fluid">
                         <div className="row">
                             <div className="col-sm-6">
-                                <h3>Laporan Bukti Kerja & Penilaian</h3>
+                                <h3>Bayarkan Gaji</h3>
                             </div>
                         </div>
                         <div className="app-content">
@@ -258,14 +302,14 @@ const KaryawanReportBuktiKerja = () => {
                                                     Reset Filter
                                                 </button>
                                             </div>
-                                            <div className="me-2">
+                                            {/* <div className="me-2">
                                                 <button
                                                     className="btn btn-success btn-sm me-2"
                                                     onClick={handleExportExcel}
                                                 >
                                                     Download .xls
                                                 </button>
-                                            </div>
+                                            </div> */}
                                         </div>
                                     </div>
                                     <div className="col-sm-12 mt-2">
@@ -277,10 +321,8 @@ const KaryawanReportBuktiKerja = () => {
                                                         { key: "client_name", label: "Nama Perusahaan" },
                                                         { key: "talent_name", label: "Nama Pekerja Kreatif" },
                                                         { key: "category", label: "Posisi" },
-                                                        { key: "start_date", label: "Periode Mulai" },
-                                                        { key: "end_date", label: "Periode Berakhir" },
-                                                        { key: "validation_status", label: "Status Penilaian" },
-                                                        { key: "payment_status", label: "Status Pembayaran" },
+                                                        { key: "salary", label: "Gaji" },
+                                                        { key: "end_date", label: "Tanggal Akhir Periode" },
                                                     ].map((col) => (
                                                         <th
                                                             key={col.key}
@@ -292,7 +334,7 @@ const KaryawanReportBuktiKerja = () => {
                                                             {sortColumn === col.key ? (sortOrder === "asc" ? "▲" : "▼") : ""}
                                                         </th>
                                                     ))}
-                                                    <th>Aksi</th>
+                                                    <th>Pembayaran</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -300,19 +342,22 @@ const KaryawanReportBuktiKerja = () => {
                                                     <tr key={proof.id}>
                                                         <td>{proof.id}</td>
                                                         <td>{proof.client.name || "-"}</td>
-                                                        <td>{proof.talent.name || "-"}</td>
+                                                        <td>{proof.talent.name + " (" + proof.talent.bank_account + ")" || "-"}</td>
                                                         <td>{proof.talent_work_history.category || "-"}</td>
-                                                        <td>{new Date(proof.start_date).toLocaleDateString("id-ID")}</td>
+                                                        <td>{formatCurrency(proof.talent_work_history.salary)}</td>
                                                         <td>{new Date(proof.end_date).toLocaleDateString("id-ID")}</td>
-                                                        <td>{validationStatusMap[proof.validation_status] || "Unknown"}</td>
-                                                        <td>{paymentStatusMap[proof.payment_status] || "Unknown"}</td>
                                                         <td>
-                                                            <Link
-                                                                to={`/karyawan/bukti-kerja/${proof.id}`}
-                                                                className="btn btn-secondary btn-sm me-1"
-                                                            >
-                                                                Lihat Detail
-                                                            </Link>
+                                                            {proof.payment_status === 1 ? (
+                                                                "Paid"
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handlePaymentProcessed(proof.id)}
+                                                                    className="btn btn-secondary btn-sm me-1"
+                                                                >
+                                                                    Pembayaran Telah Diproses
+                                                                </button>
+                                                            )}
+
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -357,4 +402,4 @@ const KaryawanReportBuktiKerja = () => {
     );
 };
 
-export default KaryawanReportBuktiKerja;
+export default PayBuktiKerjaList;

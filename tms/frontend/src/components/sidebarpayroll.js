@@ -6,7 +6,7 @@ import { LogOut, reset } from "../features/authSlice";
 import Swal from "sweetalert2";
 
 
-function Sidebarpayroll() {
+function Sidebarpayroll({ activeMenu }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const reduxUser = useSelector((state) => state.auth.user);
@@ -32,6 +32,8 @@ function Sidebarpayroll() {
             }
         });
     };
+    const isActive = (menuId) => (menuId === activeMenu ? "nav-link active" : "nav-link");
+    const isOpen = (menuId) => (menuId === activeMenu ? "menu-open" : "");
 
     return (
         <React.Fragment>
@@ -85,7 +87,7 @@ function Sidebarpayroll() {
                 {/*begin::Sidebar Brand*/}
                 <div className="sidebar-brand">
                     {/*begin::Brand Link*/}
-                    <a href="./index.html" className="brand-link">
+                    <a href="/" className="brand-link">
                         {/*begin::Brand Image*/}
                         <img src="../../dist/assets/img/logopers.png" alt="Logo" className="brand-image" />
                         {/*end::Brand Image*/}
@@ -101,19 +103,19 @@ function Sidebarpayroll() {
                     <nav className="mt-2">
                         {/*begin::Sidebar Menu*/}
                         <ul className="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
-                            <li className="nav-item">
-                                <a href="#" className="nav-link">
+                            <li className={`nav-item ${isOpen(1)}`}>
+                                <a href="/payroll/pembayaran" className="nav-link">
                                     <i className="nav-icon fa fa-solid fa-circle-check" />
                                     <p>
                                         Bayarkan Gaji
                                     </p>
                                 </a>
                             </li>
-                            <li className="nav-item">
-                                <a href="#" className="nav-link">
+                            <li className={`nav-item ${isOpen(2)}`}>
+                                <a href="/payroll/laporan-gaji" className="nav-link">
                                     <i className="nav-icon fa fa-solid fa-file" />
                                     <p>
-                                        Laporan Retensi Pekerja
+                                        Pembayaran Gaji
                                     </p>
                                 </a>
                             </li>

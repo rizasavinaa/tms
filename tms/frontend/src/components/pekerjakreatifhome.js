@@ -26,7 +26,7 @@ const Pekerjakreatifhome = () => {
     const fetchData = async () => {
       try {
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/reminderspk`);
-        
+
         if (res.data.reminderPorto) setShowReminderPorto(true);
         if (res.data.reminderBuktiKerja) setShowReminderBuktiKerja(true);
         if (res.data.reminderBuktiKerjaLalu) setShowReminderBuktiKerjaLalu(true);
@@ -73,6 +73,9 @@ const Pekerjakreatifhome = () => {
                   <ReminderBox message="Segera registrasikan bukti kerjamu bulan ini." />
                 )}
 
+                {!showReminderPorto && !showReminderBuktiKerjaLalu && !showReminderBuktiKerja && (
+                  <p className="text-gray-500 italic">Kamu tidak memiliki reminder saat ini.</p>
+                )}
               </div>
             </div>
           </div>

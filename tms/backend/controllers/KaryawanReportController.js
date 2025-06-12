@@ -343,3 +343,23 @@ export const getRetentionReport = async (req, res) => {
     return res.status(500).json({ message: "Gagal mengambil data laporan retensi" });
   }
 };
+
+export const getPayrollHomepageStats = async (req, res) => {
+  try {
+
+    // Hitung bukti kerja baru (status 0) milik client
+    const unpaid = await TalentWorkProof.count({
+      where: {
+        payment_status: 0,
+        validation_status:1,
+      },
+    });
+
+    return res.json({
+      unpaid
+    });
+  } catch (error) {
+    console.error("Error fetching client homepage stats:", error);
+    return res.status(500).json({ message: "Gagal mengambil data dashboard client" });
+  }
+};

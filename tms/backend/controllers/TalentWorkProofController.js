@@ -26,7 +26,7 @@ const getResourceType = (mimetype) => {
 
 export const getAllTalentWorkProof = async (req, res) => {
     try {
-        const { search = "", filter = "id", startDate, endDate } = req.query;
+        const { search = "", filter = "id", startDate, endDate, validation_status } = req.query;
         const where = {};
 
         if (startDate || endDate) {
@@ -39,10 +39,13 @@ export const getAllTalentWorkProof = async (req, res) => {
             where.id = { [Op.like]: `%${search}%` };
         }
 
+        if (validation_status !== undefined) {
+            where.validation_status = Number(validation_status);
+        }
         const include = [
             {
                 model: Talent,
-                attributes: ["name"],
+                attributes: ["name", "bank_account"],
                 required: filter === "talent_name" && search.trim() !== "",
                 where:
                     filter === "talent_name" && search.trim() !== ""
@@ -60,7 +63,7 @@ export const getAllTalentWorkProof = async (req, res) => {
             },
             {
                 model: TalentWorkHistory,
-                attributes: ["category"],
+                attributes: ["category", "salary"],
                 required: filter === "category" && search.trim() !== "",
                 where:
                     filter === "category" && search.trim() !== ""
@@ -1042,6 +1045,142 @@ export const sendValidationResultEmail = async (talentId, status, message, detai
         console.log("✅ Email validasi berhasil dikirim ke talent:", info.response);
     } catch (error) {
         console.error("🔥 Gagal mengirim email validasi ke talent:", error);
+    }
+};
+
+export const updatePaymentStatus = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const { id } = req.params;
+        const { payment_status, payment_date } = req.body;
+        const updatedBy = req.session.userId;
+
+        const proof = await TalentWorkProof.findByPk(id);
+        if (!proof) {
+            return res.status(404).json({ message: "Bukti kerja tidak ditemukan" });
+        }
+
+        const oldValues = {
+            payment_status: proof.payment_status,
+            payment_date: proof.payment_date,
+        };
+
+        const updatedFields = {};
+        if (payment_status !== undefined) updatedFields.payment_status = payment_status;
+        if (payment_date !== undefined) updatedFields.payment_date = payment_date;
+
+        await proof.update(updatedFields, { transaction });
+
+        // Simpan log perubahan
+        await TalentWorkProofLog.create({
+            talent_work_proof_id: id,
+            createdby: updatedBy,
+            ip: requestIp.getClientIp(req),
+            changes: JSON.stringify({
+                action: "Update Payment Status",
+                fields: Object.keys(updatedFields),
+                oldValues,
+                newValues: updatedFields,
+            }),
+        }, { transaction });
+
+        await transaction.commit();
+        return res.json({ message: "Status pembayaran berhasil diperbarui" });
+    } catch (error) {
+        await transaction.rollback();
+        console.error("Gagal update status pembayaran:", error);
+        return res.status(500).json({ message: "Gagal memperbarui status pembayaran" });
+    }
+};
+
+export const exportTalentWorkProofToExcel = async (req, res) => {
+    try {
+        const { search = "", filter = "id", startDate, endDate } = req.query;
+        const where = {};
+
+        if (startDate && endDate) {
+            where[Op.and] = [
+                { start_date: { [Op.gte]: new Date(startDate) } },
+                { end_date: { [Op.lte]: new Date(endDate) } },
+            ];
+        } else if (startDate) {
+            where.start_date = { [Op.gte]: new Date(startDate) };
+        } else if (endDate) {
+            where.end_date = { [Op.lte]: new Date(endDate) };
+        }
+
+        where.validation_status = 1;
+
+        if (filter === "id" && search.trim() !== "") {
+            where.id = { [Op.like]: `%${search}%` };
+        }
+
+        const include = [
+            {
+                model: Talent,
+                attributes: ["name"],
+                required: filter === "talent_name" && search.trim() !== "",
+                where:
+                    filter === "talent_name" && search.trim() !== ""
+                        ? { name: { [Op.like]: `%${search}%` } }
+                        : undefined,
+            },
+            {
+                model: Client,
+                attributes: ["name"],
+                required: filter === "client_name" && search.trim() !== "",
+                where:
+                    filter === "client_name" && search.trim() !== ""
+                        ? { name: { [Op.like]: `%${search}%` } }
+                        : undefined,
+            },
+            {
+                model: TalentWorkHistory,
+                attributes: ["category", "salary"],
+                required: filter === "category" && search.trim() !== "",
+                where:
+                    filter === "category" && search.trim() !== ""
+                        ? { category: { [Op.like]: `%${search}%` } }
+                        : undefined,
+            },
+        ];
+
+        const data = await TalentWorkProof.findAll({
+            where,
+            include,
+            order: [["id", "DESC"]],
+        });
+
+        const formattedData = data.map((item) => ({
+            ID: item.id,
+            "Nama Perusahaan": item.client?.name || "-",
+            "Nama Pekerja Kreatif": item.talent?.name || "-",
+            "Posisi": item.talent_work_history?.category || "-",
+            "Gaji": item.talent_work_history?.salary || "-",
+            "Tanggal Mulai Periode": item.start_date
+                ? new Date(item.start_date).toLocaleDateString("id-ID")
+                : "-",
+            "Tanggal Akhir Periode": item.end_date
+                ? new Date(item.end_date).toLocaleDateString("id-ID")
+                : "-",
+            "Status Pembayaran": item.is_paid ? "Sudah Dibayar" : "Belum Dibayar",
+            "Tanggal Pembayaran": item.payment_date
+                ? new Date(item.payment_date).toLocaleDateString("id-ID")
+                : "-",
+        }));
+
+        const worksheet = xlsx.utils.json_to_sheet(formattedData);
+        const workbook = xlsx.utils.book_new();
+        xlsx.utils.book_append_sheet(workbook, worksheet, "Bukti Kerja");
+
+        const buffer = xlsx.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+        res.setHeader("Content-Disposition", "attachment; filename=bukti-kerja.xlsx");
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.send(buffer);
+    } catch (error) {
+        console.error("Error exporting Excel:", error);
+        res.status(500).json({ message: "Gagal mengekspor data ke Excel" });
     }
 };
 

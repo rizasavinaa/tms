@@ -57,6 +57,10 @@ const TalentWorkProof = sequelize.define('talent_work_proof', {
     type: DataTypes.DATE,
     allowNull: false,
   },
+  payment_date: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
   createdby: {
     type: DataTypes.INTEGER,
     allowNull: false,

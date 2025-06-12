@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import Sidebar from "./sidebarkaryawan";
+import Sidebar from "./sidebarpayroll";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { formatCurrency } from "../utils/format";
+import withReactContent from "sweetalert2-react-content";
 
-const KaryawanReportBuktiKerja = () => {
-    useAuthRedirect(28);
+const PayReportPayment = () => {
+    useAuthRedirect(32);
     const [proofs, setProofs] = useState([]);
     const [search, setSearch] = useState("");
     const [filter, setFilter] = useState("id");
@@ -22,6 +24,7 @@ const KaryawanReportBuktiKerja = () => {
     // Filter tanggal mulai dan berakhir
     const [filterStartDate, setFilterStartDate] = useState("");
     const [filterEndDate, setFilterEndDate] = useState("");
+    const MySwal = withReactContent(Swal);
 
     const validationStatusMap = {
         0: "New",
@@ -50,7 +53,10 @@ const KaryawanReportBuktiKerja = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_URL}/workproofs`);
+                const params = {};
+                params.validation_status = 1;
+
+                const response = await axios.get(`${process.env.REACT_APP_API_URL}/workproofs`, { params });
                 const data = response?.data.data;
                 if (Array.isArray(data)) {
                     setProofs(data);
@@ -154,39 +160,30 @@ const KaryawanReportBuktiKerja = () => {
         setCurrentPage(1);
     };
 
+
     const handleExportExcel = async () => {
         setLoading(true);
         try {
-            // Encode semua query params untuk URL
-            const params = new URLSearchParams({
-                // talent_id: id,
-                startDate: filterStartDate || "",
-                endDate: filterEndDate || "",
-                filter,
-                search,
-                sortColumn,
-                sortOrder,
+            const response = await axios.get(`${process.env.REACT_APP_API_URL}/report-payroll`, {
+                params: {
+                    search,
+                    filter,
+                    startDate: filterStartDate,
+                    endDate: filterEndDate,
+                },
+                responseType: "blob",
             });
-
-            const response = await axios.get(`${process.env.REACT_APP_API_URL}/report-bukti-kerja?${params.toString()}`, {
-                responseType: 'blob', // penting supaya data diterima sebagai file
-            });
-
-            // Buat link download
+            // Buat link untuk download
             const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
+            const link = document.createElement("a");
             link.href = url;
-            link.setAttribute('download', 'laporan_bukti_kerja.xlsx');
+            link.setAttribute("download", "laporan_pembayaran_gaji.xlsx"); // nama file
             document.body.appendChild(link);
             link.click();
             link.remove();
-
         } catch (error) {
-            Swal.fire({
-                icon: "error",
-                title: "Gagal",
-                text: "Gagal mengekspor data ke Excel",
-            });
+            console.error("Gagal mengekspor Excel:", error);
+            Swal("Gagal mengunduh file Excel");
         } finally {
             setLoading(false);
         }
@@ -194,13 +191,13 @@ const KaryawanReportBuktiKerja = () => {
 
     return (
         <React.Fragment>
-            <Sidebar activeMenu={10} />
+            <Sidebar activeMenu={2} />
             <main className="app-main">
                 <div className="app-content-header">
                     <div className="container-fluid">
                         <div className="row">
                             <div className="col-sm-6">
-                                <h3>Laporan Bukti Kerja & Penilaian</h3>
+                                <h3>Laporan Pembayaran Gaji</h3>
                             </div>
                         </div>
                         <div className="app-content">
@@ -277,10 +274,9 @@ const KaryawanReportBuktiKerja = () => {
                                                         { key: "client_name", label: "Nama Perusahaan" },
                                                         { key: "talent_name", label: "Nama Pekerja Kreatif" },
                                                         { key: "category", label: "Posisi" },
-                                                        { key: "start_date", label: "Periode Mulai" },
-                                                        { key: "end_date", label: "Periode Berakhir" },
-                                                        { key: "validation_status", label: "Status Penilaian" },
-                                                        { key: "payment_status", label: "Status Pembayaran" },
+                                                        { key: "salary", label: "Gaji" },
+                                                        { key: "start_date", label: "Tanggal Mulai Periode" },
+                                                        { key: "end_date", label: "Tanggal Akhir Periode" },
                                                     ].map((col) => (
                                                         <th
                                                             key={col.key}
@@ -292,7 +288,21 @@ const KaryawanReportBuktiKerja = () => {
                                                             {sortColumn === col.key ? (sortOrder === "asc" ? "▲" : "▼") : ""}
                                                         </th>
                                                     ))}
-                                                    <th>Aksi</th>
+                                                    <th>Status Pembayaran</th>
+
+                                                    {[
+                                                        { key: "payment_date", label: "Tanggal Pembayaran" },
+                                                    ].map((col) => (
+                                                        <th
+                                                            key={col.key}
+                                                            onClick={() => handleSort(col.key)}
+                                                            className="sortable"
+                                                            style={{ cursor: "pointer" }}
+                                                        >
+                                                            {col.label}{" "}
+                                                            {sortColumn === col.key ? (sortOrder === "asc" ? "▲" : "▼") : ""}
+                                                        </th>
+                                                    ))}
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -300,20 +310,20 @@ const KaryawanReportBuktiKerja = () => {
                                                     <tr key={proof.id}>
                                                         <td>{proof.id}</td>
                                                         <td>{proof.client.name || "-"}</td>
-                                                        <td>{proof.talent.name || "-"}</td>
+                                                        <td>{proof.talent.name + " (" + proof.talent.bank_account + ")" || "-"}</td>
                                                         <td>{proof.talent_work_history.category || "-"}</td>
+                                                        <td>{formatCurrency(proof.talent_work_history.salary)}</td>
                                                         <td>{new Date(proof.start_date).toLocaleDateString("id-ID")}</td>
                                                         <td>{new Date(proof.end_date).toLocaleDateString("id-ID")}</td>
-                                                        <td>{validationStatusMap[proof.validation_status] || "Unknown"}</td>
-                                                        <td>{paymentStatusMap[proof.payment_status] || "Unknown"}</td>
                                                         <td>
-                                                            <Link
-                                                                to={`/karyawan/bukti-kerja/${proof.id}`}
-                                                                className="btn btn-secondary btn-sm me-1"
-                                                            >
-                                                                Lihat Detail
-                                                            </Link>
+                                                            {paymentStatusMap[proof.payment_status]}
                                                         </td>
+                                                        <td>
+                                                            {proof.payment_date
+                                                                ? new Date(proof.payment_date).toLocaleDateString("id-ID")
+                                                                : "-"}
+                                                        </td>
+
                                                     </tr>
                                                 ))}
                                                 {currentProofs.length === 0 && (
@@ -357,4 +367,4 @@ const KaryawanReportBuktiKerja = () => {
     );
 };
 
-export default KaryawanReportBuktiKerja;
+export default PayReportPayment;
