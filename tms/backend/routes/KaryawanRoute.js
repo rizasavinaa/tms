@@ -20,12 +20,14 @@ import {
     updateTalent,
     getTalentLog,
     createTalent,
-    getActiveTalentsByClient
+    getActiveTalentsByClient,
+    exportTalentsByClientToExcel,
 } from "../controllers/TalentController.js";
 import {
     exportTalents,
     getKaryawanDashboardStats,
-    getRetentionReport
+    getRetentionReport,
+    getClientHomepageStats
 } from "../controllers/KaryawanReportController.js";
 import {
     getClients,
@@ -56,7 +58,9 @@ import {
     getTalentWorkProofByTalentId,
     checkOverlapWorkProof,
     exportReportPembayaran,
-    exportTalentWorkProofExcel
+    exportTalentWorkProofExcel,
+    getTalentWorkProofByClientId,
+    validateTalentWorkProof
 } from "../controllers/TalentWorkProofController.js";
 
 
@@ -70,6 +74,8 @@ router.post('/posisipks', createTalentCategory);
 router.post("/portopks", upload.single("file"), createTalentPortofolio);
 router.get("/talents", getTalents);
 router.get("/talents/:id", getTalentById);
+router.get("/talents/recruited/:id", getActiveTalentsByClient);
+router.get("/export-talents/recruited", exportTalentsByClientToExcel);
 router.get("/talents-log", getTalentLog);
 router.put("/talents/:id", updateTalent);
 router.post('/talents', createTalent);
@@ -104,7 +110,10 @@ router.get("/workproofs-log", getTalentWorkProofLog);
 router.delete("/workproofs/:id", deleteTalentWorkProof);
 router.post("/workproofs/check-overlap", checkOverlapWorkProof);
 router.get("/workproofs/talent/:talent_id", getTalentWorkProofByTalentId);
+router.put("/workproofs/validate/:id",  validateTalentWorkProof);
 router.get("/report-payment-export", exportReportPembayaran);
 router.get("/report-bukti-kerja", exportTalentWorkProofExcel);
 router.get("/contracts/:id/editable", checkContractEditable);
+router.get("/workproofs/client/:client_id", getTalentWorkProofByClientId);
+router.get("/client-homepage", getClientHomepageStats);
 export default router;

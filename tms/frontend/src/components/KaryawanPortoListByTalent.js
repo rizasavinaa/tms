@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const KaryawanPortoListByTalent = ({ talentId }) => {
-
+    const { user } = useSelector((state) => state.auth);
     const [portos, setPortos] = useState([]);
     const [search, setSearch] = useState("");
     const [filter, setFilter] = useState("name");
@@ -16,6 +17,7 @@ const KaryawanPortoListByTalent = ({ talentId }) => {
 
 
     useEffect(() => {
+
         axios.get(`${process.env.REACT_APP_API_URL}/portopks/talent/${talentId}`)
             .then(response => setPortos(response.data))
             .catch(error => console.error("Gagal mengambil data portofolio", error));
@@ -37,7 +39,7 @@ const KaryawanPortoListByTalent = ({ talentId }) => {
             });
             sessionStorage.removeItem("successMessage");
         }
-    }, []);
+    }, [user]);
 
     const handleSort = (column) => {
         const order = sortColumn === column && sortOrder === "asc" ? "desc" : "asc";
@@ -119,9 +121,11 @@ const KaryawanPortoListByTalent = ({ talentId }) => {
 
                         </div>
                         <div className="me-2" style={{ width: "20%" }}>
-                            <Link to={`/karyawan/porto-register/${talentId}`} className="btn btn-success btn-sm">
-                                Tambah Portofolio
-                            </Link>
+                            {user?.role_id !== 4 && (
+                                <Link to={`/karyawan/porto-register/${talentId}`} className="btn btn-success btn-sm">
+                                    Tambah Portofolio
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -158,9 +162,12 @@ const KaryawanPortoListByTalent = ({ talentId }) => {
                                         >
                                             <i className="fas fa-download"></i>
                                         </a>
-
-                                        <a href={`/karyawan/porto-pk/${porto.id}`} className="btn btn-secondary btn-sm me-1">Lihat Detail</a>
-                                        <button onClick={() => handleDelete(porto.id)} className="btn btn-danger btn-sm">Delete</button>
+                                        {user?.role_id !== 4 && (
+                                            <>
+                                                <a href={`/karyawan/porto-pk/${porto.id}`} className="btn btn-secondary btn-sm me-1">Lihat Detail</a>
+                                                <button onClick={() => handleDelete(porto.id)} className="btn btn-danger btn-sm">Delete</button>
+                                            </>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

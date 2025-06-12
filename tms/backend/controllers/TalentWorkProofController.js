@@ -25,150 +25,150 @@ const getResourceType = (mimetype) => {
 };
 
 export const getAllTalentWorkProof = async (req, res) => {
-  try {
-    const { search = "", filter = "id", startDate, endDate } = req.query;
-    const where = {};
+    try {
+        const { search = "", filter = "id", startDate, endDate } = req.query;
+        const where = {};
 
-    if (startDate || endDate) {
-      where.start_date = {};
-      if (startDate) where.start_date[Op.gte] = new Date(startDate);
-      if (endDate) where.start_date[Op.lte] = new Date(endDate);
+        if (startDate || endDate) {
+            where.start_date = {};
+            if (startDate) where.start_date[Op.gte] = new Date(startDate);
+            if (endDate) where.start_date[Op.lte] = new Date(endDate);
+        }
+
+        if (filter === "id" && search.trim() !== "") {
+            where.id = { [Op.like]: `%${search}%` };
+        }
+
+        const include = [
+            {
+                model: Talent,
+                attributes: ["name"],
+                required: filter === "talent_name" && search.trim() !== "",
+                where:
+                    filter === "talent_name" && search.trim() !== ""
+                        ? { name: { [Op.like]: `%${search}%` } }
+                        : undefined,
+            },
+            {
+                model: Client,
+                attributes: ["name"],
+                required: filter === "client_name" && search.trim() !== "",
+                where:
+                    filter === "client_name" && search.trim() !== ""
+                        ? { name: { [Op.like]: `%${search}%` } }
+                        : undefined,
+            },
+            {
+                model: TalentWorkHistory,
+                attributes: ["category"],
+                required: filter === "category" && search.trim() !== "",
+                where:
+                    filter === "category" && search.trim() !== ""
+                        ? { category: { [Op.like]: `%${search}%` } }
+                        : undefined,
+            },
+        ];
+
+        console.log("WHERE:", where);
+        console.log("FILTER:", filter);
+        console.log("SEARCH:", search);
+
+        const data = await TalentWorkProof.findAll({
+            where,
+            include,
+            order: [["id", "DESC"]],
+            logging: console.log,
+        });
+
+        res.status(200).json({ data: data.map((item) => item.toJSON()) });
+    } catch (error) {
+        console.error("Error getAllTalentWorkProof:", error);
+        res.status(500).json({ message: "Gagal mengambil data" });
     }
-
-    if (filter === "id" && search.trim() !== "") {
-      where.id = { [Op.like]: `%${search}%` };
-    }
-
-    const include = [
-      {
-        model: Talent,
-        attributes: ["name"],
-        required: filter === "talent_name" && search.trim() !== "",
-        where:
-          filter === "talent_name" && search.trim() !== ""
-            ? { name: { [Op.like]: `%${search}%` } }
-            : undefined,
-      },
-      {
-        model: Client,
-        attributes: ["name"],
-        required: filter === "client_name" && search.trim() !== "",
-        where:
-          filter === "client_name" && search.trim() !== ""
-            ? { name: { [Op.like]: `%${search}%` } }
-            : undefined,
-      },
-      {
-        model: TalentWorkHistory,
-        attributes: ["category"],
-        required: filter === "category" && search.trim() !== "",
-        where:
-          filter === "category" && search.trim() !== ""
-            ? { category: { [Op.like]: `%${search}%` } }
-            : undefined,
-      },
-    ];
-
-    console.log("WHERE:", where);
-    console.log("FILTER:", filter);
-    console.log("SEARCH:", search);
-
-    const data = await TalentWorkProof.findAll({
-      where,
-      include,
-      order: [["id", "DESC"]],
-      logging: console.log,
-    });
-
-    res.status(200).json({ data: data.map((item) => item.toJSON()) });
-  } catch (error) {
-    console.error("Error getAllTalentWorkProof:", error);
-    res.status(500).json({ message: "Gagal mengambil data" });
-  }
 };
 
 export const exportTalentWorkProofExcel = async (req, res) => {
-  try {
-    const { search = "", filter = "id", startDate, endDate } = req.query;
-    const where = {};
+    try {
+        const { search = "", filter = "id", startDate, endDate } = req.query;
+        const where = {};
 
-    // Filter tanggal
-    if (startDate || endDate) {
-      where.start_date = {};
-      if (startDate) where.start_date[Op.gte] = new Date(startDate);
-      if (endDate) where.start_date[Op.lte] = new Date(endDate);
+        // Filter tanggal
+        if (startDate || endDate) {
+            where.start_date = {};
+            if (startDate) where.start_date[Op.gte] = new Date(startDate);
+            if (endDate) where.start_date[Op.lte] = new Date(endDate);
+        }
+
+        // Filter berdasarkan kolom utama
+        if (filter === "id" && search) {
+            where.id = { [Op.like]: `%${search}%` };
+        }
+
+        // Setup include dan filter relasi
+        const include = [
+            {
+                model: Talent,
+                attributes: ["name"],
+                required: filter === "talent_name",
+                where: filter === "talent_name" ? { name: { [Op.like]: `%${search}%` } } : undefined,
+            },
+            {
+                model: Client,
+                attributes: ["name"],
+                required: filter === "client_name",
+                where: filter === "client_name" ? { name: { [Op.like]: `%${search}%` } } : undefined,
+            },
+            {
+                model: TalentWorkHistory,
+                attributes: ["category"],
+                required: filter === "category",
+                where: filter === "category" ? { category: { [Op.like]: `%${search}%` } } : undefined,
+            },
+        ];
+
+        // Ambil data dari DB
+        const data = await TalentWorkProof.findAll({
+            where,
+            include,
+            order: [["id", "DESC"]],
+        });
+
+        // Format data jadi array objek biasa untuk Excel
+        const exportData = data.map((item) => {
+            const json = item.toJSON();
+            return {
+                ID: json.id,
+                "Nama Perusahaan": json.client?.name || "",
+                "Nama Pekerja Kreatif": json.talent?.name || "",
+                Posisi: json.talent_work_history?.category || "",
+                "Periode Mulai": new Date(json.start_date).toLocaleDateString("id-ID"),
+                "Periode Berakhir": new Date(json.end_date).toLocaleDateString("id-ID"),
+                "Status Penilaian": json.validation_status,
+                "Status Pembayaran": json.payment_status,
+            };
+        });
+
+        // Buat worksheet dari data JSON
+        const worksheet = xlsx.utils.json_to_sheet(exportData);
+
+        // Buat workbook dan masukkan worksheet
+        const workbook = xlsx.utils.book_new();
+        xlsx.utils.book_append_sheet(workbook, worksheet, "Laporan Bukti Kerja");
+
+        // Buat buffer excel dari workbook
+        const excelBuffer = xlsx.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+        // Set header supaya file terdownload
+        res.setHeader("Content-Disposition", "attachment; filename=laporan_bukti_kerja.xlsx");
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+        // Kirim file excel sebagai response
+        res.send(excelBuffer);
+
+    } catch (error) {
+        console.error("Error exportTalentWorkProofExcel:", error);
+        res.status(500).json({ message: "Gagal mengekspor data" });
     }
-
-    // Filter berdasarkan kolom utama
-    if (filter === "id" && search) {
-      where.id = { [Op.like]: `%${search}%` };
-    }
-
-    // Setup include dan filter relasi
-    const include = [
-      {
-        model: Talent,
-        attributes: ["name"],
-        required: filter === "talent_name",
-        where: filter === "talent_name" ? { name: { [Op.like]: `%${search}%` } } : undefined,
-      },
-      {
-        model: Client,
-        attributes: ["name"],
-        required: filter === "client_name",
-        where: filter === "client_name" ? { name: { [Op.like]: `%${search}%` } } : undefined,
-      },
-      {
-        model: TalentWorkHistory,
-        attributes: ["category"],
-        required: filter === "category",
-        where: filter === "category" ? { category: { [Op.like]: `%${search}%` } } : undefined,
-      },
-    ];
-
-    // Ambil data dari DB
-    const data = await TalentWorkProof.findAll({
-      where,
-      include,
-      order: [["id", "DESC"]],
-    });
-
-    // Format data jadi array objek biasa untuk Excel
-    const exportData = data.map((item) => {
-      const json = item.toJSON();
-      return {
-        ID: json.id,
-        "Nama Perusahaan": json.client?.name || "",
-        "Nama Pekerja Kreatif": json.talent?.name || "",
-        Posisi: json.talent_work_history?.category || "",
-        "Periode Mulai": new Date(json.start_date).toLocaleDateString("id-ID"),
-        "Periode Berakhir": new Date(json.end_date).toLocaleDateString("id-ID"),
-        "Status Penilaian": json.validation_status,
-        "Status Pembayaran": json.payment_status,
-      };
-    });
-
-    // Buat worksheet dari data JSON
-    const worksheet = xlsx.utils.json_to_sheet(exportData);
-
-    // Buat workbook dan masukkan worksheet
-    const workbook = xlsx.utils.book_new();
-    xlsx.utils.book_append_sheet(workbook, worksheet, "Laporan Bukti Kerja");
-
-    // Buat buffer excel dari workbook
-    const excelBuffer = xlsx.write(workbook, { type: "buffer", bookType: "xlsx" });
-
-    // Set header supaya file terdownload
-    res.setHeader("Content-Disposition", "attachment; filename=laporan_bukti_kerja.xlsx");
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-
-    // Kirim file excel sebagai response
-    res.send(excelBuffer);
-
-  } catch (error) {
-    console.error("Error exportTalentWorkProofExcel:", error);
-    res.status(500).json({ message: "Gagal mengekspor data" });
-  }
 };
 
 export const getTalentWorkProofById = async (req, res) => {
@@ -527,7 +527,7 @@ export const sendWorkProofNotificationEmail = async (talentId, startDate, endDat
         const email = client.email;
         const talentName = talent.name;
         const periode = `${startDate} s.d ${endDate}`;
-        const detailLink = `${process.env.FRONTEND_URL}/klien/bukti-kerja/${workProofId}`;
+        const detailLink = `${process.env.FRONTEND_URL}/client/bukti-kerja/${workProofId}`;
 
         const transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST,
@@ -660,7 +660,6 @@ export const updateTalentWorkProof = async (req, res) => {
         res.status(500).json({ message: "Gagal memperbarui data bukti kerja" });
     }
 };
-
 
 export const checkOverlapWorkProof = async (req, res) => {
     try {
@@ -820,6 +819,229 @@ export const exportReportPembayaran = async (req, res) => {
     } catch (error) {
         console.error("Error export laporan pembayaran:", error);
         res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+export const getTalentWorkProofByClientId = async (req, res) => {
+    try {
+        const { client_id } = req.params;
+
+        const {
+            search = "",
+            filter = "id",
+            filterStartDate,
+            filterEndDate,
+            sortColumn = "id",
+            sortOrder = "asc",
+            page = 1,
+            limit = 10,
+            validation_status, // ⬅️ Tambahan di sini
+        } = req.query;
+
+        const pageInt = parseInt(page) || 1;
+        const limitInt = parseInt(limit) || 10;
+        const offset = (pageInt - 1) * limitInt;
+
+        const where = { client_id };
+
+        // Filter search
+        if (search) {
+            if (filter === "talent_name") {
+                // nanti difilter via include Client
+            } else {
+                where[filter] = { [Op.like]: `%${search}%` };
+            }
+        }
+
+        // Filter tanggal mulai dan akhir
+        if (filterStartDate) {
+            where.start_date = { ...(where.start_date || {}), [Op.gte]: filterStartDate };
+        }
+        if (filterEndDate) {
+            where.end_date = { ...(where.end_date || {}), [Op.lte]: filterEndDate };
+        }
+
+        // ⬅️ Filter opsional validation_status
+        if (validation_status !== undefined) {
+            where.validation_status = validation_status;
+        }
+
+        const include = [];
+
+        // Client include
+        if (filter === "client_name") {
+            include.push({
+                model: Client,
+                as: "client",
+                where: {
+                    name: { [Op.like]: `%${search}%` },
+                },
+                attributes: ["id", "name"],
+                required: true,
+            });
+        } else {
+            include.push({
+                model: Client,
+                as: "client",
+                attributes: ["id", "name"],
+            });
+        }
+
+        // Talent include
+        if (filter === "talent_name") {
+            include.push({
+                model: Talent,
+                as: "talent",
+                where: {
+                    name: { [Op.like]: `%${search}%` },
+                },
+                attributes: ["id", "name"],
+                required: true,
+            });
+        } else {
+            include.push({
+                model: Talent,
+                as: "talent",
+                attributes: ["id", "name"],
+            });
+        }
+
+
+        const sortableColumns = [
+            "id",
+            "start_date",
+            "end_date",
+            "validation_status",
+            "payment_status",
+        ];
+        let order = [["id", "DESC"]];
+        if (sortableColumns.includes(sortColumn)) {
+            order = [[sortColumn, sortOrder.toUpperCase() === "DESC" ? "DESC" : "ASC"]];
+        }
+
+        const { rows, count } = await TalentWorkProof.findAndCountAll({
+            where,
+            include,
+            order,
+            limit: limitInt,
+            offset,
+        });
+
+        const data = rows.map((row) => ({
+            id: row.id,
+            talent_id: row.talent_id,
+            description: row.description,
+            start_date: row.start_date,
+            end_date: row.end_date,
+            validation_status: row.validation_status,
+            payment_status: row.payment_status,
+            client_id: row.client_id,
+            client_name: row.client?.name || null,
+            file_link: row.file_link,
+            createdAt: row.createdAt,
+            updatedAt: row.updatedAt,
+            talent_name: row.talent?.name || null,
+        }));
+
+        res.status(200).json({
+            total: count,
+            page: pageInt,
+            perPage: limitInt,
+            data,
+        });
+    } catch (error) {
+        console.error("Error getTalentWorkProofByClientId:", error);
+        res.status(500).json({ message: "Gagal mengambil data berdasarkan client_id" });
+    }
+};
+
+export const validateTalentWorkProof = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const { id } = req.params;
+        const { validation_status, validation_message } = req.body;
+        const updatedby = req.session.userId;
+
+        const proof = await TalentWorkProof.findByPk(id);
+        if (!proof) {
+            return res.status(404).json({ message: "Bukti kerja tidak ditemukan." });
+        }
+
+        // Update validasi
+        await proof.update({
+            validation_status,
+            validation_message,
+            updatedby,
+        }, { transaction });
+
+        // Simpan log
+        await TalentWorkProofLog.create({
+            talent_work_proof_id: proof.id,
+            createdby: updatedby,
+            ip: requestIp.getClientIp(req),
+            changes: JSON.stringify({
+                action: validation_status === 1 ? "Validasi Diterima" : "Validasi Ditolak",
+                fields: ["validation_status", "validation_message"],
+                values: { validation_status, validation_message },
+            }),
+        }, { transaction });
+
+        // Kirim email ke talent
+        await sendValidationResultEmail(
+            proof.talent_id,
+            validation_status,
+            validation_message,
+            `${process.env.FRONTEND_URL}/pekerjakreatif/bukti-kerja/${proof.id}`
+        );
+
+        await transaction.commit();
+        return res.status(200).json({ message: "Validasi berhasil disimpan." });
+    } catch (error) {
+        await transaction.rollback();
+        console.error("Gagal menyimpan validasi bukti kerja:", error);
+        return res.status(500).json({ message: "Gagal menyimpan validasi." });
+    }
+};
+
+export const sendValidationResultEmail = async (talentId, status, message, detailLink) => {
+    try {
+        const talent = await Talent.findByPk(talentId);
+        if (!talent || !talent.email) {
+            console.error("Email talent tidak ditemukan.");
+            return;
+        }
+
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: process.env.SMTP_PORT,
+            secure: process.env.SMTP_SECURE === "true",
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+            },
+        });
+
+        const statusText = status === 1 ? "DITERIMA ✅" : "DITOLAK ❌";
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: talent.email,
+            subject: `Status Validasi Bukti Kerja: ${statusText}`,
+            html: `
+                <p>Halo <strong>${talent.name}</strong>,</p>
+                <p>Bukti kerja Anda telah <strong>${status === 1 ? "DITERIMA" : "DITOLAK"}</strong> oleh supervisor perusahaan klien.</p>
+                <p><strong>Pesan Validasi:</strong></p>
+                <p>${message || "(Tidak ada pesan)"}</p>
+                <p>Silakan lihat detailnya di link berikut:</p>
+                <p><a href="${detailLink}">${detailLink}</a></p>
+                <p>Terima kasih.</p>
+            `,
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log("✅ Email validasi berhasil dikirim ke talent:", info.response);
+    } catch (error) {
+        console.error("🔥 Gagal mengirim email validasi ke talent:", error);
     }
 };
 

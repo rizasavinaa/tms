@@ -6,7 +6,7 @@ import { LogOut, reset } from "../features/authSlice";
 import Swal from "sweetalert2";
 
 
-function Sidebarclient() {
+function Sidebarclient({ activeMenu }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const reduxUser = useSelector((state) => state.auth.user);
@@ -31,6 +31,9 @@ function Sidebarclient() {
             }
         });
     };
+
+    const isActive = (menuId) => (menuId === activeMenu ? "nav-link active" : "nav-link");
+    const isOpen = (menuId) => (menuId === activeMenu ? "menu-open" : "");
 
     return (
         <React.Fragment>
@@ -84,7 +87,7 @@ function Sidebarclient() {
                 {/*begin::Sidebar Brand*/}
                 <div className="sidebar-brand">
                     {/*begin::Brand Link*/}
-                    <a href="./index.html" className="brand-link">
+                    <a href="./" className="brand-link">
                         {/*begin::Brand Image*/}
                         <img src="../../dist/assets/img/logopers.png" alt="Logo" className="brand-image" />
                         {/*end::Brand Image*/}
@@ -100,32 +103,32 @@ function Sidebarclient() {
                     <nav className="mt-2">
                         {/*begin::Sidebar Menu*/}
                         <ul className="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
-                            <li className="nav-item">
-                                <a href="#" className="nav-link">
+                            <li className={`nav-item ${isOpen(1)}`}>
+                                <a href="/client/pk" className="nav-link">
                                     <i className="nav-icon fa fa-solid fa-users" />
                                     <p>
                                         Pekerja Kreatif
                                     </p>
                                 </a>
                             </li>
-                            <li className="nav-item">
-                                <a href="#" className="nav-link">
+                            <li className={`nav-item ${isOpen(2)}`}>
+                                <a href="/client/bukti-kerja" className="nav-link">
                                     <i className="nav-icon fa fa-solid fa-circle-check" />
                                     <p>
                                         Bukti Kerja
                                     </p>
                                 </a>
                             </li>
-                            <li className="nav-item">
-                                <a href="#" className="nav-link">
+                            <li className={`nav-item ${isOpen(3)}`}>
+                                <a href="/client/kontrak" className="nav-link">
                                     <i className="nav-icon fa fa-solid fa-handshake" />
                                     <p>
                                         Kontrak
                                     </p>
                                 </a>
                             </li>
-                            <li className="nav-item">
-                                <a href="#" className="nav-link">
+                            <li className={`nav-item ${isOpen(4)}`}>
+                                <a href="/client/laporan-retensi" className="nav-link">
                                     <i className="nav-icon fa fa-solid fa-file" />
                                     <p>
                                         Laporan Retensi Pekerja

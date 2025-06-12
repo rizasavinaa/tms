@@ -4,6 +4,7 @@ import RolePrivilege from "../models/RolePrivilegeModel.js";
 import UserLog from "../models/UserLogModel.js";
 import requestIp from "request-ip";
 import Talent from "../models/TalentModel.js"
+import Client from "../models/ClientModel.js";
 
 export const Login = async (req, res) => {
     const user = await User.scope(null).findOne({
@@ -31,6 +32,7 @@ export const Login = async (req, res) => {
     req.session.fullname = user.fullname;
     req.session.createdAt = Date.now();
     req.session.talent_id = 0;
+    req.session.client_id = 0;
     if (user.role_id === 3) {
         const talent = await Talent.findOne({
             where: { user_id: user.id }
@@ -38,6 +40,14 @@ export const Login = async (req, res) => {
 
         if (talent) {
             req.session.talent_id = talent.id;
+        }
+    }else if (user.role_id === 4) {
+        const client = await Client.findOne({
+            where: { user_id: user.id }
+        });
+
+        if (client) {
+            req.session.client_id = client.id;
         }
     }
     req.session.save(() => {
@@ -47,7 +57,8 @@ export const Login = async (req, res) => {
             fullname: user.fullname,
             email: user.email,
             role_id: user.role_id,
-            talent_id: user.talent_id,
+            talent_id: req.session.talent_id,
+            client_id: req.session.client_id
         });
     });
 
@@ -83,6 +94,7 @@ export const Me = async (req, res) => {
         email: user.email,
         role_id: user.role_id,
         talent_id: req.session.talent_id, // ⬅️ Tambahkan ini!
+        client_id: req.session.client_id,
     });
 }
 

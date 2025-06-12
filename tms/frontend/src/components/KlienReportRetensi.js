@@ -3,13 +3,16 @@ import axios from "axios";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 import useAuthRedirect from "../features/authRedirect";
-import Sidebar from "./sidebarkaryawan";
+import Sidebar from "./sidebarclient";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-export default function KaryawanReportRetensi() {
+export default function KlienReportRetensi() {
     useAuthRedirect(27);
+    const { user } = useSelector((state) => state.auth);
+    const id = user?.client_id;
     const [data, setData] = useState([]);
     const [filterKey, setFilterKey] = useState("id");
     const [search, setSearch] = useState("");
@@ -37,8 +40,9 @@ export default function KaryawanReportRetensi() {
                 sortKey,
                 sortOrder,
             };
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/laporan-retensi`, { params });
+            const res = await axios.get(`${process.env.REACT_APP_API_URL}/laporan-retensi?client_id=${id}`, { params });
             setData(res.data.data || []);
+            console.log(JSON.stringify(res.data.data));
             setTotal(res.data.total || 0);
             const start = (page - 1) * limit + 1;
             const end = Math.min(start + limit - 1, res.data.total || 0);
@@ -54,37 +58,16 @@ export default function KaryawanReportRetensi() {
     }
 
     useEffect(() => {
+        if (!id) return;
         const timeout = setTimeout(() => {
             fetchData();
-        }, 500); // debounce 500ms
+        }, 500);
 
         return () => clearTimeout(timeout);
-    }, [search, filterKey, page, sortKey, sortOrder]);
+    }, [id, search, filterKey, page, sortKey, sortOrder]);
 
 
-    // Export to Excel
-    const exportExcel = () => {
-        const worksheetData = data.map((item) => ({
-            "ID Kontrak": item.id,
-            "Nama Perusahaan": item.client?.name || "-",
-            "Nama Pekerja Kreatif": item.talent?.name || "-",
-            Posisi: item.category || "-",
-            "Tanggal Mulai Kontrak": item.start_date,
-            "Tanggal Berakhir Kontrak": item.end_date,
-        }));
-        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Retensi");
-        const excelBuffer = XLSX.write(workbook, {
-            bookType: "xlsx",
-            type: "array",
-        });
-        const blob = new Blob([excelBuffer], {
-            type:
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
-        });
-        saveAs(blob, "laporan_retensi.xlsx");
-    };
+
 
     // Handle sorting on column header click
     const handleSort = (key) => {
@@ -121,6 +104,34 @@ export default function KaryawanReportRetensi() {
     );
 
 
+    const downloadExcel = async () => {
+        setLoading(true);
+        try {
+            const token = localStorage.getItem("token");
+
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/laporan-retensi?export=1&client_id=${id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "laporan_retensi.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } catch (error) {
+            console.error("Gagal download laporan:", error);
+            alert("Gagal download laporan. Silakan coba lagi.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
     return (
         <React.Fragment>
             {/* Overlay Loading */}
@@ -132,7 +143,7 @@ export default function KaryawanReportRetensi() {
                     </div>
                 </div>
             )}
-            <Sidebar activeMenu={9} />
+            <Sidebar activeMenu={4} />
             {/*begin::App Main*/}
             <main className="app-main">
                 <div className="container-fluid p-3">
@@ -151,7 +162,6 @@ export default function KaryawanReportRetensi() {
                                 onChange={(e) => setFilterKey(e.target.value)}
                             >
                                 <option value="id">ID</option>
-                                <option value="client_name">Nama Perusahaan</option>
                                 <option value="talent_name">Nama Pekerja Kreatif</option>
                                 <option value="category">Posisi</option>
                             </select>
@@ -170,7 +180,7 @@ export default function KaryawanReportRetensi() {
                             />
                         </div>
                         <div className="col-md-2 d-flex justify-content-end">
-                            <button className="btn btn-success" onClick={exportExcel}>
+                            <button className="btn btn-success" onClick={downloadExcel}>
                                 Download .xls
                             </button>
                         </div>
@@ -218,7 +228,7 @@ export default function KaryawanReportRetensi() {
                                     >
                                         Tanggal Berakhir {sortKey === "end_date" ? (sortOrder === "asc" ? "▲" : "▼") : ""}
                                     </th>
-                                    <th>Aksi</th>
+                                    <th>Berakhir Dalam</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -244,9 +254,7 @@ export default function KaryawanReportRetensi() {
                                             <td>{new Date(item.start_date).toLocaleDateString('id-ID')}</td>
                                             <td>{new Date(item.end_date).toLocaleDateString('id-ID')}</td>
                                             <td>
-                                                <Link to={`/karyawan/kontrak/${item.id}`} className="btn btn-secondary btn-sm">
-                                                    Lihat Detail
-                                                </Link>
+                                                {item.days_remaining + " hari"}
                                             </td>
                                         </tr>
                                     ))
@@ -263,7 +271,7 @@ export default function KaryawanReportRetensi() {
             </main>
             <Jsfunction />
             <Footer />
-            
+
         </React.Fragment>
     );
 }

@@ -8,6 +8,8 @@ import User from "../models/UserModel.js";
 import UserLog from "../models/UserLogModel.js";
 import { createUserInternal } from "./UserController.js";
 import { now } from "sequelize/lib/utils";
+import xlsx from "xlsx";
+import { Op } from 'sequelize';
 
 export const createTalent = async (req, res) => {
     const transaction = await sequelize.transaction();
@@ -197,12 +199,98 @@ export const getTalentLog = async (req, res) => {
 export const getActiveTalentsByClient = async (req, res) => {
   try {
     const client_id = req.params.id;
+    const {
+      search = "",
+      filter = "name",
+      sortColumn = "id",
+      sortOrder = "asc",
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    const offset = (page - 1) * limit;
+
+    // 🧠 Mapping kolom search dan sorting ke field yang tepat
+    const filterFields = {
+      name: "name",
+      email: "email",
+      category: "$talent_category.name$",
+      status: "$talent_status.name$"
+    };
+
+    const sortFields = {
+      id: "id",
+      name: "name",
+      email: "email",
+      category: "$talent_category.name$",
+      status: "$talent_status.name$",
+      last_salary: "last_salary"
+    };
+
+    const searchFilter = search
+      ? {
+          [filterFields[filter] || "name"]: {
+            [Op.iLike]: `%${search}%`
+          }
+        }
+      : {};
+
+    const { count, rows } = await Talent.findAndCountAll({
+      where: {
+        client_id,
+        status_id: 2,
+        ...searchFilter,
+      },
+      include: [
+        {
+          model: TalentCategory,
+          attributes: ["name"],
+        },
+        {
+          model: TalentStatus,
+          attributes: ["name"],
+        }
+      ],
+      order: [[sortFields[sortColumn] || "id", sortOrder.toUpperCase()]],
+      offset: parseInt(offset),
+      limit: parseInt(limit),
+    });
+
+    const formatted = rows.map(t => ({
+      id: t.id,
+      name: t.name,
+      email: t.email,
+      category: t.talent_category?.name || "-",
+      status: t.talent_status?.name || "-",
+      last_salary: t.last_salary,
+    }));
+
+    res.json({
+      total: count,
+      data: formatted,
+    });
+
+  } catch (error) {
+    console.error("Error fetching talents by client:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const exportTalentsByClientToExcel = async (req, res) => {
+  try {
+    const { search = '', filter = 'name', sortColumn = 'id', sortOrder = 'asc' } = req.query;
+
+    const whereClause = {
+      status_id: 2, // status aktif
+    };
+
+    if (search) {
+      if (filter === 'name') whereClause.name = { [Op.iLike]: `%${search}%` };
+      if (filter === 'email') whereClause.email = { [Op.iLike]: `%${search}%` };
+    }
 
     const talents = await Talent.findAll({
-      where: {
-        client_id: client_id,
-        status_id: 2, // status aktif
-      },
+      where: whereClause,
       include: [
         {
           model: TalentStatus,
@@ -213,21 +301,31 @@ export const getActiveTalentsByClient = async (req, res) => {
           attributes: ['name'],
         },
       ],
-      order: [['id', 'ASC']],
+      order: [[sortColumn, sortOrder.toUpperCase()]],
     });
 
-    const formatted = talents.map(t => ({
-      id: t.id,
-      name: t.name,
-      email: t.email,
-      position: t.TalentCategory?.name || "-",
-      status: t.TalentStatus?.name || "-",
+    const data = talents.map(t => ({
+      ID: t.id,
+      Nama: t.name,
+      Email: t.email,
+      Posisi: t.talent_category?.name || '-',
+      Status: t.talent_status?.name || '-',
+      'Gaji Terakhir': t.last_salary,
     }));
 
-    res.json(formatted);
+    const worksheet = xlsx.utils.json_to_sheet(data);
+    const workbook = xlsx.utils.book_new();
+
+    xlsx.utils.book_append_sheet(workbook, worksheet, 'Talents');
+
+    const buffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+    res.setHeader('Content-Disposition', 'attachment; filename="data_talent.xlsx"');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buffer);
   } catch (error) {
-    console.error("Error fetching talents by client:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error('Error exporting talents:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 

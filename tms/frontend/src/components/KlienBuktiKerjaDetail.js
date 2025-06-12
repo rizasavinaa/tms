@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import Sidebar from "./sidebarpekerjakreatif";
+import Sidebar from "./sidebarclient";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 import Swal from "sweetalert2";
 
 
-const PKBuktiKerjaDetail = () => {
+const KlienBuktiKerjaDetail = () => {
     useAuthRedirect(30);
     const { id } = useParams(); // workproof_id
     const [activeTab, setActiveTab] = useState("detail");
@@ -110,73 +110,61 @@ const PKBuktiKerjaDetail = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validasi tanggal mulai dan berakhir
-        if (formData.start_date > formData.end_date) {
+        // Validasi: status harus dipilih (1 atau 2)
+        if (![1, 2].includes(formData.validation_status)) {
             Swal.fire({
-                icon: 'error',
-                title: 'Kesalahan',
-                text: 'Tanggal mulai tidak boleh lebih besar dari tanggal berakhir.',
+                icon: "warning",
+                title: "Status Validasi Diperlukan",
+                text: "Silakan pilih apakah bukti kerja diterima atau ditolak.",
             });
             return;
         }
 
-        setLoading(true);
-        try {
-            // Cek overlap tanggal via API
-            const overlapRes = await axios.post(`${process.env.REACT_APP_API_URL}/workproofs/check-overlap`, {
-                talent_id: data.talent_id,
-                start_date: formData.start_date,
-                end_date: formData.end_date,
-                excludeId: id,  // exclude current record saat edit
-            });
-
-            if (overlapRes.data.overlap) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Tanggal Bertabrakan',
-                    text: overlapRes.data.message || "Periode bukti kerja bertabrakan dengan data lain.",
-                });
-                setLoading(false);
-                return;
-            }
-
-            if (!overlapRes.data.contractValid) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Periode Tidak Valid',
-                    text: overlapRes.data.message || "Periode bukti kerja harus berada di dalam periode kontrak aktif.",
-                });
-                setLoading(false);
-                return;
-            }
-
-            // Jika lolos validasi, submit form
-            const payload = new FormData();
-            payload.append("start_date", formData.start_date);
-            payload.append("end_date", formData.end_date);
-            payload.append("description", formData.description);
-            if (formData.file) payload.append("file", formData.file);
-
-            await axios.put(`${process.env.REACT_APP_API_URL}/workproofs/${id}`, payload);
-
+        // Validasi: pesan harus diisi untuk semua status
+        if (!formData.validation_message?.trim()) {
             Swal.fire({
-                icon: 'success',
-                title: 'Sukses',
-                text: 'Data berhasil diperbarui',
+                icon: "warning",
+                title: "Pesan Validasi Diperlukan",
+                text: "Silakan isi pesan validasi terlebih dahulu.",
             });
-
-            fetchData(); // refresh data
-        } catch (err) {
-            console.error("Gagal menyimpan:", err);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Gagal menyimpan data',
-            });
-        } finally {
-            setLoading(false);
+            return;
         }
+        setLoading(true); // aktifkan loading sebelum request
+
+        try {
+            const { data } = await axios.put(`${process.env.REACT_APP_API_URL}/workproofs/validate/${id}`, {
+                validation_status: formData.validation_status,
+                validation_message: formData.validation_message,
+            });
+
+            Swal.fire({
+                icon: "success",
+                title: "Berhasil",
+                text: "Validasi bukti kerja berhasil disimpan.",
+                timer: 1500,
+                showConfirmButton: false,
+            }).then(() => {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+            });
+
+        } catch (error) {
+            console.error("Gagal validasi:", error);
+
+            Swal.fire({
+                icon: "error",
+                title: "Gagal",
+                text: error.response?.data?.message || "Terjadi kesalahan saat menyimpan validasi.",
+            });
+
+        } finally {
+            setLoading(false); // nonaktifkan loading setelah request selesai
+        }
+
     };
+
+
 
     const sortedData = [...logData].sort((a, b) => {
         const dir = sortConfig.direction === "asc" ? 1 : -1;
@@ -245,7 +233,7 @@ const PKBuktiKerjaDetail = () => {
 
     return (
         <React.Fragment>
-            <Sidebar activeMenu={7} />
+            <Sidebar activeMenu={2} />
             {loading && (
                 <div className="overlay-loading">
                     <div className="loading-content">
@@ -280,124 +268,126 @@ const PKBuktiKerjaDetail = () => {
 
                         {activeTab === "detail" && (
                             <div className="card p-3">
-                                {data.validation_status === 1 && (
-                                    <div className="alert alert-info">
-                                        Data ini telah divalidasi dan tidak bisa diubah lagi.
-                                    </div>
-                                )}
-
                                 <div className="row">
+                                    {/* Kolom Kiri: Data Detail */}
                                     <div className="col-md-9">
-                                        <form onSubmit={handleSubmit}>
+                                        <div className="mb-3 row">
+                                            <label className="col-sm-3 col-form-label">Nama Perusahaan</label>
+                                            <div className="col-sm-9">
+                                                <p className="form-control-plaintext">{data.client.name || "-"}</p>
+                                            </div>
+                                        </div>
+                                        <div className="mb-3 row">
+                                            <label className="col-sm-3 col-form-label">Salary</label>
+                                            <div className="col-sm-9">
+                                                <p className="form-control-plaintext">
+                                                    {data.salary ? `Rp ${Number(data.salary).toLocaleString("id-ID")}` : "-"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="mb-3 row">
+                                            <label className="col-sm-3 col-form-label">Status Validasi</label>
+                                            <div className="col-sm-9">
+                                                {validationStatusMap[data.validation_status] || "Unknown"}
+                                            </div>
+                                        </div>
+                                        {data.validation_status !== 0 && (
                                             <div className="mb-3 row">
-                                                <label className="col-sm-3 col-form-label">Nama Perusahaan</label>
+                                                <label className="col-sm-3 col-form-label">Pesan Validasi dari SPV Klien</label>
                                                 <div className="col-sm-9">
-                                                    <p className="form-control-plaintext">{data.client.name || "-"}</p>
+                                                    <p className="form-control-plaintext">{data.validation_message || "-"}</p>
                                                 </div>
                                             </div>
-                                            <div className="mb-3 row">
-                                                <label className="col-sm-3 col-form-label">Salary</label>
-                                                <div className="col-sm-9">
-                                                    <p className="form-control-plaintext">
-                                                        {data.salary ? `Rp ${Number(data.salary).toLocaleString("id-ID")}` : "-"}
-                                                    </p>
-                                                </div>
+                                        )}
+                                        <div className="mb-3 row">
+                                            <label className="col-sm-3 col-form-label">Status Pembayaran</label>
+                                            <div className="col-sm-9">
+                                                {paymentStatusMap[data.payment_status] || "Unknown"}
                                             </div>
-                                            <div className="mb-3 row">
-                                                <label className="col-sm-3 col-form-label">Status Validasi</label>
-                                                <div className="col-sm-9">
-                                                    <p className="form-control-plaintext">
-                                                        {validationStatusMap[data.validation_status] || "Unknown"}
-                                                    </p>
-                                                </div>
+                                        </div>
+                                        <div className="mb-3 row">
+                                            <label className="col-sm-3 col-form-label">Tanggal Mulai</label>
+                                            <div className="col-sm-9">
+                                                <p className="form-control-plaintext">{formData.start_date || "-"}</p>
                                             </div>
-                                            {data.validation_status !== 0 && (
-                                                <div className="mb-3 row">
-                                                    <label className="col-sm-3 col-form-label">Pesan Validasi dari SPV Klien</label>
-                                                    <div className="col-sm-9">
-                                                        <p className="form-control-plaintext">
-                                                            {data.validation_message}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            <div className="mb-3 row">
-                                                <label className="col-sm-3 col-form-label">Status Pembayaran</label>
-                                                <div className="col-sm-9">
-                                                    {paymentStatusMap[data.payment_status] || "Unknown"}
-                                                </div>
+                                        </div>
+                                        <div className="mb-3 row">
+                                            <label className="col-sm-3 col-form-label">Tanggal Berakhir</label>
+                                            <div className="col-sm-9">
+                                                <p className="form-control-plaintext">{formData.end_date || "-"}</p>
                                             </div>
-                                            <div className="mb-3 row">
-                                                <label className="col-sm-3 col-form-label">Tanggal Mulai</label>
-                                                <div className="col-sm-9">
-                                                    <input
-                                                        type="date"
-                                                        name="start_date"
-                                                        className="form-control"
-                                                        value={formData.start_date}
-                                                        onChange={handleChange}
-                                                        required
-                                                        disabled={isDisabled}
-                                                    />
-                                                </div>
+                                        </div>
+                                        <div className="mb-3 row">
+                                            <label className="col-sm-3 col-form-label">Catatan</label>
+                                            <div className="col-sm-9">
+                                                <p className="form-control-plaintext">{formData.description || "-"}</p>
                                             </div>
-                                            <div className="mb-3 row">
-                                                <label className="col-sm-3 col-form-label">Tanggal Berakhir</label>
-                                                <div className="col-sm-9">
-                                                    <input
-                                                        type="date"
-                                                        name="end_date"
-                                                        className="form-control"
-                                                        value={formData.end_date}
-                                                        onChange={handleChange}
-                                                        required
-                                                        disabled={isDisabled}
-                                                    />
-                                                </div>
+                                        </div>
+                                        <div className="mb-3 row">
+                                            <label className="col-sm-3 col-form-label">File</label>
+                                            <div className="col-sm-9">
+                                                {data.file_link ? (
+                                                    <a href={data.file_link} target="_blank" rel="noreferrer">{data.file_link}</a>
+                                                ) : (
+                                                    <span className="text-muted">Tidak ada file</span>
+                                                )}
                                             </div>
-                                            <div className="mb-3 row">
-                                                <label className="col-sm-3 col-form-label">Catatan</label>
-                                                <div className="col-sm-9">
-                                                    <textarea
-                                                        name="description"
-                                                        className="form-control"
-                                                        rows="3"
-                                                        value={formData.description}
-                                                        onChange={handleChange}
-                                                        disabled={isDisabled}
-                                                    ></textarea>
-                                                </div>
-                                            </div>
-                                            <div className="mb-3 row">
-                                                <label className="col-sm-3 col-form-label">File</label>
-                                                <div className="col-sm-9">
-                                                    {data.file_link ? (
-                                                        <a href={data.file_link} target="_blank" rel="noreferrer">{data.file_link}</a>
-                                                    ) : (
-                                                        <span className="text-muted">Tidak ada file</span>
-                                                    )}
-                                                    <input
-                                                        type="file"
-                                                        name="file"
-                                                        accept=".pdf,.jpg,.jpeg,.png"
-                                                        className="form-control"
-                                                        onChange={handleChange}
-                                                        disabled={isDisabled}
-                                                    />
-                                                    <small className="text-muted d-block mt-1">
-                                                        ⚠️ Upload file baru akan <strong>menghapus file sebelumnya</strong> secara otomatis.
-                                                    </small>
-                                                </div>
-                                            </div>
-
-                                            <div className="row">
-                                                <div className="offset-sm-3 col-sm-9">
-                                                    <button type="submit" className="btn btn-success" disabled={isDisabled}>Simpan</button>
-                                                </div>
-                                            </div>
-                                        </form>
+                                        </div>
                                     </div>
+
+                                    {/* Kolom Kanan: Validasi */}
+                                    {data.validation_status === 0 ? (
+                                        <div className="col-md-3 border-start">
+                                            <div className="mb-3">
+                                                <label className="form-label">Status Validasi</label>
+                                                <div className="d-flex gap-2">
+                                                    <button
+                                                        type="button"
+                                                        className={`btn btn-outline-success btn-sm w-100 ${formData.validation_status === 1 ? "active" : ""}`}
+                                                        onClick={() => setFormData({ ...formData, validation_status: 1 })}
+                                                    >
+                                                        Valid
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className={`btn btn-outline-danger btn-sm w-100 ${formData.validation_status === 2 ? "active" : ""}`}
+                                                        onClick={() => setFormData({ ...formData, validation_status: 2 })}
+                                                    >
+                                                        Tolak
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="mb-3">
+                                                <label className="form-label">Pesan Validasi</label>
+                                                <textarea
+                                                    name="validation_message"
+                                                    className="form-control"
+                                                    rows="4"
+                                                    value={formData.validation_message || ""}
+                                                    onChange={handleChange}
+                                                    required
+                                                ></textarea>
+                                            </div>
+
+                                            <button type="submit" className="btn btn-success w-100" onClick={handleSubmit}>Simpan</button>
+                                        </div>
+                                    ) : (
+                                        <div className="col-md-3 border-start">
+                                            <div className="mb-3">
+                                                <label className="form-label">Status Validasi</label>
+                                                <p className="form-control-plaintext">
+                                                    {data.validation_status === 1 ? "Valid" : data.validation_status === 2 ? "Ditolak" : "-"}
+                                                </p>
+                                            </div>
+                                            <div className="mb-3">
+                                                <label className="form-label">Pesan Validasi</label>
+                                                <p className="form-control-plaintext">
+                                                    {data.validation_message || "-"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -438,7 +428,6 @@ const PKBuktiKerjaDetail = () => {
                                                 ))}
                                             </tbody>
                                         </table>
-                                        {/* Pagination Controls */}
                                         <div className="d-flex justify-content-between align-items-center">
                                             <span>Halaman {currentPage} dari {totalPages}</span>
                                             <div>
@@ -459,4 +448,4 @@ const PKBuktiKerjaDetail = () => {
     );
 };
 
-export default PKBuktiKerjaDetail;
+export default KlienBuktiKerjaDetail;

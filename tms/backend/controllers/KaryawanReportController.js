@@ -4,6 +4,7 @@ import Talent from "../models/TalentModel.js";
 import TalentCategory from "../models/TalentCategoryModel.js";
 import TalentStatus from "../models/TalentStatusModel.js";
 import TalentWorkHistory from "../models/TalentWorkHistoryModel.js";
+import TalentWorkProof from "../models/TalentWorkProofModel.js";
 import dayjs from "dayjs";
 import Client from "../models/ClientModel.js";
 
@@ -133,16 +134,66 @@ export const getKaryawanDashboardStats = async (req, res) => {
   }
 };
 
+export const getClientHomepageStats = async (req, res) => {
+  try {
+    const { client_id } = req.query;
+
+    if (!client_id) {
+      return res.status(400).json({ message: "client_id wajib diisi di query" });
+    }
+
+    // Hitung talent dengan status aktif dan milik client ini
+    const recruited = await Talent.count({
+      where: {
+        client_id: client_id,
+        status_id: 2,
+      },
+    });
+
+    // Hitung bukti kerja baru (status 0) milik client
+    const newworkproof = await TalentWorkProof.count({
+      where: {
+        client_id: client_id,
+        validation_status: 0,
+      },
+    });
+
+    return res.json({
+      recruited,
+      newworkproof,
+    });
+  } catch (error) {
+    console.error("Error fetching client homepage stats:", error);
+    return res.status(500).json({ message: "Gagal mengambil data dashboard client" });
+  }
+};
+
 function datenum(v) {
   if (!(v instanceof Date)) v = new Date(v);
   return (v - new Date(Date.UTC(1899, 11, 30))) / (24 * 60 * 60 * 1000);
 }
 
+const formatDate = (date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  return isNaN(d) ? "" : d.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+};
+const calculateDaysRemaining = (endDate) => {
+  if (!endDate) return "";
+  const today = new Date();
+  const end = new Date(endDate);
+  const diffTime = end - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return isNaN(diffDays) ? "" : diffDays;
+};
+
 export const getRetentionReport = async (req, res) => {
   try {
+    const { client_id } = req.query; //opsional
     const today = dayjs().format("YYYY-MM-DD");
     const nextMonth = dayjs().add(31, "day").format("YYYY-MM-DD");
 
+    console.log(client_id + "kli");
     const {
       page = 1,
       limit = 10,
@@ -193,11 +244,14 @@ export const getRetentionReport = async (req, res) => {
         model: Client,
         as: "client",
         attributes: ["id", "name"],
-        where:
-          filterKey === "client_name" && search
+        where: {
+          ...(filterKey === "client_name" && search
             ? { name: { [Op.like]: `%${search}%` } }
-            : undefined,
-        required: filterKey === "client_name" && !!search,
+            : {}),
+          ...(client_id ? { id: client_id } : {}),
+        },
+        required:
+          (filterKey === "client_name" && !!search) || !!client_id,
       },
     ];
 
@@ -220,62 +274,68 @@ export const getRetentionReport = async (req, res) => {
     });
 
     // EXPORT ke Excel
-  
-if (isExport === "1") {
-  const dataExport = result.rows.map((item) => ({
-    "ID Kontrak": item.id,
-    "Nama Perusahaan": item.client?.name || "-",
-    "Nama Pekerja Kreatif": item.talent?.name || "-",
-    "Posisi": item.category || "-",
-    // pastikan input adalah Date, jangan pakai dayjs.format ke string
-    "Tanggal Mulai Kontrak": item.start_date ? new Date(item.start_date) : null,
-    "Tanggal Berakhir Kontrak": item.end_date ? new Date(item.end_date) : null,
-  }));
 
-  const worksheet = xlsx.utils.json_to_sheet(dataExport);
+    if (isExport === "1") {
+      const dataExport = result.rows.map((item) => ({
+        "ID Kontrak": item.id,
+        "Nama Perusahaan": item.client?.name || "-",
+        "Nama Pekerja Kreatif": item.talent?.name || "-",
+        "Posisi": item.category || "-",
+        // pastikan input adalah Date, jangan pakai dayjs.format ke string
+        "Tanggal Mulai Kontrak": item.start_date ? formatDate(item.start_date) : null,
+        "Tanggal Berakhir Kontrak": item.end_date ? formatDate(item.end_date) : null,
+        "Berakhir Dalam": calculateDaysRemaining(item.end_date) + " hari",
+      }));
 
-  // Dapatkan range worksheet
-  const range = xlsx.utils.decode_range(worksheet['!ref']);
+      const worksheet = xlsx.utils.json_to_sheet(dataExport);
 
-  for (let R = range.s.r + 1; R <= range.e.r; ++R) {
-    // Kolom tanggal mulai kontrak, kolom E index 4
-    const startCellRef = xlsx.utils.encode_cell({ r: R, c: 4 });
-    if (worksheet[startCellRef] && worksheet[startCellRef].v) {
-      worksheet[startCellRef].t = "n"; // type number
-      worksheet[startCellRef].z = xlsx.SSF.get_table()[14]; // format tanggal m/d/yy
-      worksheet[startCellRef].v = datenum(worksheet[startCellRef].v);
+      // Dapatkan range worksheet
+      const range = xlsx.utils.decode_range(worksheet['!ref']);
+
+      for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+        // Kolom tanggal mulai kontrak, kolom E index 4
+        const startCellRef = xlsx.utils.encode_cell({ r: R, c: 4 });
+        if (worksheet[startCellRef] && worksheet[startCellRef].v) {
+          worksheet[startCellRef].t = "n"; // type number
+          worksheet[startCellRef].z = xlsx.SSF.get_table()[14]; // format tanggal m/d/yy
+          worksheet[startCellRef].v = datenum(worksheet[startCellRef].v);
+        }
+
+        // Kolom tanggal berakhir kontrak, kolom F index 5
+        const endCellRef = xlsx.utils.encode_cell({ r: R, c: 5 });
+        if (worksheet[endCellRef] && worksheet[endCellRef].v) {
+          worksheet[endCellRef].t = "n";
+          worksheet[endCellRef].z = xlsx.SSF.get_table()[14];
+          worksheet[endCellRef].v = datenum(worksheet[endCellRef].v);
+        }
+      }
+
+      const workbook = xlsx.utils.book_new();
+      xlsx.utils.book_append_sheet(workbook, worksheet, "Laporan Retensi");
+
+      const buffer = xlsx.write(workbook, { bookType: "xlsx", type: "buffer" });
+
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=laporan_retensi.xlsx"
+      );
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      return res.send(buffer);
     }
-
-    // Kolom tanggal berakhir kontrak, kolom F index 5
-    const endCellRef = xlsx.utils.encode_cell({ r: R, c: 5 });
-    if (worksheet[endCellRef] && worksheet[endCellRef].v) {
-      worksheet[endCellRef].t = "n";
-      worksheet[endCellRef].z = xlsx.SSF.get_table()[14];
-      worksheet[endCellRef].v = datenum(worksheet[endCellRef].v);
-    }
-  }
-
-  const workbook = xlsx.utils.book_new();
-  xlsx.utils.book_append_sheet(workbook, worksheet, "Laporan Retensi");
-
-  const buffer = xlsx.write(workbook, { bookType: "xlsx", type: "buffer" });
-
-  res.setHeader(
-    "Content-Disposition",
-    "attachment; filename=laporan_retensi.xlsx"
-  );
-  res.setHeader(
-    "Content-Type",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-  );
-  return res.send(buffer);
-}
 
 
 
     // NORMAL JSON
+    const modifiedRows = result.rows.map((item) => {
+      const plain = item.toJSON(); // ubah instance Sequelize jadi object biasa
+      plain.days_remaining = calculateDaysRemaining(item.end_date);
+      return plain;
+    });
     return res.json({
-      data: result.rows,
+      data: modifiedRows,
       total: result.count,
     });
   } catch (error) {
