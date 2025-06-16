@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarit";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
+import api from "../api/api";
 
 const ItRoleList = () => {
     useAuthRedirect(5);
@@ -18,7 +19,7 @@ const ItRoleList = () => {
     const rolesPerPage = 10;
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/roles`)
+        api.get(`/roles`)
             .then(response => setRoles(response.data))
             .catch(error => console.error("Gagal mengambil data role:", error));
 

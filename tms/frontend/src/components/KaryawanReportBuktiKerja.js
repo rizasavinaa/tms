@@ -4,9 +4,10 @@ import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
-import axios from "axios";
+
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import api from "../api/api";
 
 const KaryawanReportBuktiKerja = () => {
     useAuthRedirect(28);
@@ -50,7 +51,7 @@ const KaryawanReportBuktiKerja = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_URL}/workproofs`);
+                const response = await api.get(`/workproofs`);
                 const data = response?.data.data;
                 if (Array.isArray(data)) {
                     setProofs(data);
@@ -168,7 +169,7 @@ const KaryawanReportBuktiKerja = () => {
                 sortOrder,
             });
 
-            const response = await axios.get(`${process.env.REACT_APP_API_URL}/report-bukti-kerja?${params.toString()}`, {
+            const response = await api.get(`/report-bukti-kerja?${params.toString()}`, {
                 responseType: 'blob', // penting supaya data diterima sebagai file
             });
 

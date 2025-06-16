@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import api from "../api/api";
 
 const KaryawanPortoListByTalent = ({ talentId }) => {
     const { user } = useSelector((state) => state.auth);
@@ -18,7 +19,7 @@ const KaryawanPortoListByTalent = ({ talentId }) => {
 
     useEffect(() => {
 
-        axios.get(`${process.env.REACT_APP_API_URL}/portopks/talent/${talentId}`)
+        api.get(`/portopks/talent/${talentId}`)
             .then(response => setPortos(response.data))
             .catch(error => console.error("Gagal mengambil data portofolio", error));
 
@@ -60,7 +61,7 @@ const KaryawanPortoListByTalent = ({ talentId }) => {
         if (confirm.isConfirmed) {
             try {
                 setLoading(true); // ⬅️ Aktifkan overlay
-                await axios.delete(`${process.env.REACT_APP_API_URL}/portopks/${id}`);
+                await api.delete(`/portopks/${id}`);
                 setPortos(prev => prev.filter(p => p.id !== id));
                 Swal.fire("Dihapus!", "Portofolio berhasil dihapus.", "success");
             } catch (error) {

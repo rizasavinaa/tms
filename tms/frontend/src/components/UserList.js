@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import Sidebarit from "./sidebarit";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
+import api from "../api/api";
 
 const UserList = () => {
   const [users, setUser] = useState([]);
@@ -13,13 +13,13 @@ const UserList = () => {
   }, []);
 
   const getUsers = async () => {
-    const response = await axios.get(`${process.env.REACT_APP_API_URL}/users`, { withCredentials: true });
+    const response = await api.get(`/users`, { withCredentials: true });
     setUser(response.data);
   };
 
   const deleteUser = async (id) => {
     try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/users/${id}`);
+      await api.delete(`/users/${id}`);
       getUsers();
     } catch (error) {
       console.log(error);

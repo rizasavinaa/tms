@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+
 import api from "../api/api"; // Import API axios
 
 const initialState = {
@@ -13,7 +13,7 @@ const initialState = {
 
 export const LoginUser = createAsyncThunk("user/LoginUser", async(user, thunkAPI) => {
     try {
-        const response = await axios.post(`${process.env.REACT_APP_API_URL}/login`, {
+        const response = await api.post(`/login`, {
             email: user.email,
             password: user.password
         });
@@ -39,7 +39,7 @@ export const getMe = createAsyncThunk("user/getMe", async (_, thunkAPI) => {
 });
 
 export const LogOut = createAsyncThunk("user/LogOut", async() => {
-    await axios.delete(`${process.env.REACT_APP_API_URL}/logout`);
+    await api.delete(`/logout`);
 });
 
 export const authSlice = createSlice({
@@ -94,7 +94,7 @@ export default authSlice.reducer;
 
 
 // import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-// import axios from "axios";
+// 
 // import api from "../api/api"; // Import API axios
 
 // const initialState = {
@@ -107,7 +107,7 @@ export default authSlice.reducer;
 
 // export const LoginUser = createAsyncThunk("user/LoginUser", async(user, thunkAPI) => {
 //     try {
-//         const response = await axios.post(`${process.env.REACT_APP_API_URL}/login`, {
+//         const response = await api.post(`/login`, {
 //             email: user.email,
 //             password: user.password
 //         });
@@ -133,7 +133,7 @@ export default authSlice.reducer;
 // });
 
 // export const LogOut = createAsyncThunk("user/LogOut", async() => {
-//     await axios.delete(`${process.env.REACT_APP_API_URL}/logout`);
+//     await api.delete(`/logout`);
 // });
 
 // export const authSlice = createSlice({

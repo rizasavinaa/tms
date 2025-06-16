@@ -2,12 +2,12 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import axios from "axios";
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarit";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
+import api from "../api/api";
 
 const ItReportUserActivity = () => {
     useAuthRedirect(5);
@@ -36,7 +36,7 @@ const ItReportUserActivity = () => {
         );
     
         try {
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/laporan-aktivitas-user`, {
+            const res = await api.get(`/laporan-aktivitas-user`, {
                 params,
             });
             setLogs(res.data.data || []); // fallback kalau kosong
@@ -84,7 +84,7 @@ const ItReportUserActivity = () => {
             Object.entries(filters).filter(([_, v]) => v !== "" && v !== null)
         );
     
-        axios.get(`${process.env.REACT_APP_API_URL}/export-laporan-aktivitas-user`, {
+        api.get(`/export-laporan-aktivitas-user`, {
             params,
             responseType: 'blob', // penting untuk file biner
         })
@@ -119,7 +119,7 @@ const ItReportUserActivity = () => {
     //         Object.entries(filters).filter(([_, v]) => v !== "" && v !== null)
     //     );
 
-    //     axios.get(`${process.env.REACT_APP_API_URL}/laporan-aktivitas-user`, { params })
+    //     api.get(`/laporan-aktivitas-user`, { params })
     //         .then(response => {
     //             //setActivityData(response.data);
     //         })

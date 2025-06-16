@@ -4,11 +4,12 @@ import Sidebar from "./sidebarpayroll";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
-import axios from "axios";
+
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/format";
 import withReactContent from "sweetalert2-react-content";
+import api from "../api/api";
 
 const PayReportPayment = () => {
     useAuthRedirect(32);
@@ -56,7 +57,7 @@ const PayReportPayment = () => {
                 const params = {};
                 params.validation_status = 1;
 
-                const response = await axios.get(`${process.env.REACT_APP_API_URL}/workproofs`, { params });
+                const response = await api.get(`/workproofs`, { params });
                 const data = response?.data.data;
                 if (Array.isArray(data)) {
                     setProofs(data);
@@ -164,7 +165,7 @@ const PayReportPayment = () => {
     const handleExportExcel = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`${process.env.REACT_APP_API_URL}/report-payroll`, {
+            const response = await api.get(`/report-payroll`, {
                 params: {
                     search,
                     filter,

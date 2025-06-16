@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarit";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { useNavigate } from "react-router-dom";
+import api from "../api/api";
 
 const ItRoleRegister = () => {
     useAuthRedirect(6);
@@ -19,7 +20,7 @@ const ItRoleRegister = () => {
         e.preventDefault();
         setLoading(true); // Aktifkan overlay loading
 
-        axios.post(`${process.env.REACT_APP_API_URL}/roles`, {
+        api.post(`/roles`, {
             name,
             description
         })

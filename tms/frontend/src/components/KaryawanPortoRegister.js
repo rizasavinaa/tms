@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarkaryawan";
@@ -22,7 +22,7 @@ const KaryawanPortoRegister = () => {
     // useEffect(() => {
     //     const fetchTalent = async () => {
     //         try {
-    //             const response = await axios.get(`${process.env.REACT_APP_API_URL}/talents/${talentId}`);
+    //             const response = await api.get(`/talents/${talentId}`);
     //             setTalentName(response.data.name);
     //         } catch (error) {
     //             console.error("Gagal mengambil data talent:", error);
@@ -42,7 +42,7 @@ const KaryawanPortoRegister = () => {
     //     formData.append("talent_id", talentId); // Ambil dari URL
 
     //     try {
-    //         await axios.post(`${process.env.REACT_APP_API_URL}/portopks`, formData);
+    //         await api.post(`/portopks`, formData);
     //         sessionStorage.setItem("successMessage", "Registrasi berhasil!");
     //         navigate("/karyawan/porto-pk");
     //         // setTimeout(() => window.location.reload(), 100);

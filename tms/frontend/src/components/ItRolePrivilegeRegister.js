@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarit";
@@ -7,6 +7,7 @@ import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { useNavigate } from "react-router-dom";
 import Loading from "./loading";
+import api from "../api/api";
 
 const ItRolePrivilegeRegister = () => {
     useAuthRedirect(8);
@@ -19,7 +20,7 @@ const ItRolePrivilegeRegister = () => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_URL}/roles`)
+    api.get(`/roles`)
       .then(response => setRoles(response.data))
       .catch(error => console.error("Error fetching roles:", error));
   }, []);
@@ -28,7 +29,7 @@ const ItRolePrivilegeRegister = () => {
         e.preventDefault();
         setLoading(true);
 
-        axios.post(`${process.env.REACT_APP_API_URL}/role-priv`, {
+        api.post(`/role-priv`, {
             role_id: selectedRoleId,
             name,
             description

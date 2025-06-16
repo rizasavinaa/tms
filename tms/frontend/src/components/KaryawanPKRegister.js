@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 import { useNavigate } from "react-router-dom";
+import api from "../api/api";
 
 const KaryawanPKRegister = () => {
     useAuthRedirect(20);
@@ -33,7 +34,7 @@ const KaryawanPKRegister = () => {
         if (!formData.email) return;
 
         const timeout = setTimeout(() => {
-            axios.post(`${process.env.REACT_APP_API_URL}/check-email`, { email: formData.email })
+            api.post(`/check-email`, { email: formData.email })
                 .then((res) => {
                     if (!res.data.available) {
                         Swal.fire({
@@ -54,7 +55,7 @@ const KaryawanPKRegister = () => {
 
     const fetchCategories = async () => {
         try {
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/posisipks`);
+            const res = await api.get(`/posisipks`);
             setCategories(res.data);
         } catch (err) {
             console.error("Gagal mengambil data kategori:", err);
@@ -86,7 +87,7 @@ const KaryawanPKRegister = () => {
 
         // 🔍 Cek email dulu sebelum submit
         try {
-            const res = await axios.post(`${process.env.REACT_APP_API_URL}/check-email`, {
+            const res = await api.post(`/check-email`, {
                 email: formData.email,
             });
 
@@ -103,7 +104,7 @@ const KaryawanPKRegister = () => {
 
         // ✅ Jika email tersedia, lanjutkan
         try {
-            await axios.post(`${process.env.REACT_APP_API_URL}/talents`, formData);
+            await api.post(`/talents`, formData);
             Swal.fire("Sukses", "Data berhasil disimpan", "success");
             setFormData({
                 name: "",

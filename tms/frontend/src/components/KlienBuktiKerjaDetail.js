@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+
 import Sidebar from "./sidebarclient";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 import Swal from "sweetalert2";
+import api from "../api/api";
 
 
 const KlienBuktiKerjaDetail = () => {
@@ -47,7 +48,7 @@ const KlienBuktiKerjaDetail = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/workproofs/${id}`);
+            const res = await api.get(`/workproofs/${id}`);
             const wp = res.data;
             setData(wp);
             setFormData({
@@ -79,11 +80,11 @@ const KlienBuktiKerjaDetail = () => {
             try {
                 let endpoint = "";
                 if (activeTab === "riwayat") {
-                    endpoint = `${process.env.REACT_APP_API_URL}/workproofs-log?talent_work_proof_id=${id}`;
+                    endpoint = `/workproofs-log?talent_work_proof_id=${id}`;
                 }
 
                 if (endpoint) {
-                    const response = await axios.get(endpoint);
+                    const response = await api.get(endpoint);
                     setLogData(response.data);
                     setCurrentPage(1);
                 }
@@ -132,7 +133,7 @@ const KlienBuktiKerjaDetail = () => {
         setLoading(true); // aktifkan loading sebelum request
 
         try {
-            const { data } = await axios.put(`${process.env.REACT_APP_API_URL}/workproofs/validate/${id}`, {
+            const { data } = await api.put(`/workproofs/validate/${id}`, {
                 validation_status: formData.validation_status,
                 validation_message: formData.validation_message,
             });

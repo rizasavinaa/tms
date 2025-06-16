@@ -2,7 +2,8 @@ import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getMe, setRedirected } from "./authSlice";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
+
 
 const useAuthRedirect = (privilegeId) => {
     const dispatch = useDispatch();
@@ -57,8 +58,8 @@ const useAuthRedirect = (privilegeId) => {
     useEffect(() => {
         if (!user || !privilegeId) return;
 
-        axios
-            .get(`${process.env.REACT_APP_API_URL}/checkprivilege/${privilegeId}`)
+        api
+            .get(`/checkprivilege/${privilegeId}`)
             .then((res) => {
                 if (!res.data.access) {
                     console.log("Akses tidak diizinkan, redirect ke /no-access");
@@ -82,7 +83,7 @@ export default useAuthRedirect;
 // import { useDispatch, useSelector } from "react-redux";
 // import { getMe, setRedirected } from "./authSlice";
 // import { useNavigate, useLocation } from "react-router-dom";
-// import axios from "axios";
+// 
 
 // const useAuthRedirect = (privilegeId) => {
 //     const dispatch = useDispatch();
@@ -154,7 +155,7 @@ export default useAuthRedirect;
 //         if (!user || !privilegeId) return;
 
 //         axios
-//             .get(`${process.env.REACT_APP_API_URL}/checkprivilege/${privilegeId}`)
+//             .get(`/checkprivilege/${privilegeId}`)
 //             .then((res) => {
 //                 if (!res.data.access) {
 //                     console.log("Akses tidak diizinkan, redirect ke /no-access");

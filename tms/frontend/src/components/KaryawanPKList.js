@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+
 import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import useAuthRedirect from "../features/authRedirect";
 import { saveAs } from "file-saver";
 import Swal from "sweetalert2";
+import api from "../api/api";
 
 
 const KaryawanPKList = () => {
@@ -21,7 +22,7 @@ const KaryawanPKList = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/talents`)
+        api.get(`/talents`)
             .then((response) => setTalents(response.data))
             .catch((error) => console.error("Gagal mengambil data talents:", error));
 
@@ -88,7 +89,7 @@ const KaryawanPKList = () => {
     };
 
     const handleExportExcel = () => {
-        axios.get(`${process.env.REACT_APP_API_URL}/export-talents`, {
+        api.get(`/export-talents`, {
             params: {
                 search,
                 filter,

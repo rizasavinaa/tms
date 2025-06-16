@@ -4,9 +4,10 @@ import Sidebar from "./sidebarpekerjakreatif";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
-import axios from "axios";
+
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import api from "../api/api";
 
 const PKBuktiKerjaList = () => {
     useAuthRedirect(30);
@@ -39,8 +40,8 @@ const PKBuktiKerjaList = () => {
     useEffect(() => {
         if (!id) return; // ⛔ Jangan jalan kalau id belum tersedia
 
-        axios
-            .get(`${process.env.REACT_APP_API_URL}/workproofs/talent/${id}`)
+        api
+            .get(`/workproofs/talent/${id}`)
             .then((response) => setProofs(response.data.data))
             .catch((error) => console.error("Gagal mengambil data bukti kerja", error));
 
@@ -82,7 +83,7 @@ const PKBuktiKerjaList = () => {
         if (confirm.isConfirmed) {
             try {
                 setLoading(true);
-                await axios.delete(`${process.env.REACT_APP_API_URL}/workproofs/${id}`);
+                await api.delete(`/workproofs/${id}`);
                 setProofs((prev) => prev.filter((p) => p.id !== id));
                 Swal.fire("Dihapus!", "Bukti kerja berhasil dihapus.", "success");
             } catch (error) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarpekerjakreatif";
 import Footer from "./footer";

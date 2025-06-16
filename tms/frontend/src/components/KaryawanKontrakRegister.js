@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+
 import Select from "react-select";
 import Swal from "sweetalert2";
 import Sidebar from "./sidebarkaryawan";
@@ -8,6 +8,7 @@ import Jsfunction from "./jsfunction";
 import { useParams, useNavigate } from "react-router-dom";
 import { formatCurrency } from "../utils/format";
 import useAuthRedirect from "../features/authRedirect";
+import api from "../api/api";
 
 const KaryawanKontrakRegister = () => {
     useAuthRedirect(26);
@@ -28,7 +29,7 @@ const KaryawanKontrakRegister = () => {
     useEffect(() => {
         const fetchTalent = async () => {
             try {
-                const res = await axios.get(`${process.env.REACT_APP_API_URL}/talents/${id}`);
+                const res = await api.get(`/talents/${id}`);
                 setTalent(res.data);
 
                 if (res.data.status_id === 2) {
@@ -54,7 +55,7 @@ const KaryawanKontrakRegister = () => {
         };
         const fetchClients = async () => {
             try {
-                const res = await axios.get(`${process.env.REACT_APP_API_URL}/clients`);
+                const res = await api.get(`/clients`);
                 setClients(res.data.map(c => ({ value: c.id, label: c.name })));
             } catch (error) {
                 console.error("Error fetch clients:", error);
@@ -110,7 +111,7 @@ const KaryawanKontrakRegister = () => {
             payload.append("description", formData.description);
             if (formData.contract_file) payload.append("contract_file", formData.contract_file);
 
-            await axios.post(`${process.env.REACT_APP_API_URL}/contracts/${id}`, payload, {
+            await api.post(`/contracts/${id}`, payload, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 

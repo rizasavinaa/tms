@@ -3,9 +3,9 @@ import Sidebar from "./sidebarclient";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
-import axios from "axios";
 import LoadingPage from "./loading";
 import { useSelector } from "react-redux";
+import api from "../api/api";
 
 const Clienthome = () => {
   const loading = useAuthRedirect(19); // ID privilege untuk halaman IT
@@ -20,7 +20,7 @@ const Clienthome = () => {
 
     const fetchStats = async () => {
       try {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/client-homepage?client_id=${id}`);
+        const res = await api.get(`/client-homepage?client_id=${id}`);
         setStats(res.data);
       } catch (err) {
         console.error('Gagal mengambil data dashboard:', err);

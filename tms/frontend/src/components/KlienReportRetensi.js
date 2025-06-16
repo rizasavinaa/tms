@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 import useAuthRedirect from "../features/authRedirect";
@@ -8,6 +8,7 @@ import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import api from "../api/api";
 
 export default function KlienReportRetensi() {
     useAuthRedirect(27);
@@ -40,7 +41,7 @@ export default function KlienReportRetensi() {
                 sortKey,
                 sortOrder,
             };
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/laporan-retensi?client_id=${id}`, { params });
+            const res = await api.get(`/laporan-retensi?client_id=${id}`, { params });
             setData(res.data.data || []);
             console.log(JSON.stringify(res.data.data));
             setTotal(res.data.total || 0);
@@ -109,7 +110,7 @@ export default function KlienReportRetensi() {
         try {
             const token = localStorage.getItem("token");
 
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/laporan-retensi?export=1&client_id=${id}`, {
+            const response = await fetch(`/laporan-retensi?export=1&client_id=${id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

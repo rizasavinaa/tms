@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -7,6 +7,7 @@ import Sidebar from "./sidebarpekerjakreatif";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
+import api from "../api/api";
 
 const PKBuktiKerjaRegister = () => {
     useAuthRedirect(31);
@@ -27,7 +28,7 @@ const PKBuktiKerjaRegister = () => {
 
         const fetchTalent = async () => {
             try {
-                const res = await axios.get(`${process.env.REACT_APP_API_URL}/talents/${talentId}`);
+                const res = await api.get(`/talents/${talentId}`);
                 const data = res.data;
 
                 if (data.status_id !== 2 || data.client_id === 0) {
@@ -84,7 +85,7 @@ const PKBuktiKerjaRegister = () => {
 
         setLoading(true);
         try {
-            const checkRes = await axios.post(`${process.env.REACT_APP_API_URL}/workproofs/check-overlap`, {
+            const checkRes = await api.post(`/workproofs/check-overlap`, {
                 talent_id: talentId,
                 start_date: startDate,
                 end_date: endDate,
@@ -120,7 +121,7 @@ const PKBuktiKerjaRegister = () => {
             formData.append("file", file);
             formData.append("talent_id", talentId);
 
-            await axios.post(`${process.env.REACT_APP_API_URL}/workproofs`, formData);
+            await api.post(`/workproofs`, formData);
 
             sessionStorage.setItem("successMessage", "Registrasi bukti kerja berhasil!");
             if (role === 2) {

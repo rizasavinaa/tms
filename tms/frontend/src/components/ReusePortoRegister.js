@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
+import api from "../api/api";
 
 const ReusePortoRegister = () => {
     const { user } = useSelector((state) => state.auth);
@@ -19,7 +20,7 @@ const ReusePortoRegister = () => {
     useEffect(() => {
         const fetchTalent = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_URL}/talents/${talentId}`);
+                const response = await api.get(`/talents/${talentId}`);
                 setTalentName(response.data.name);
             } catch (error) {
                 console.error("Gagal mengambil data talent:", error);
@@ -39,7 +40,7 @@ const ReusePortoRegister = () => {
         formData.append("talent_id", talentId); // Ambil dari URL
 
         try {
-            await axios.post(`${process.env.REACT_APP_API_URL}/portopks`, formData);
+            await api.post(`/portopks`, formData);
             sessionStorage.setItem("successMessage", "Registrasi berhasil!");
             if (role === 2) {
                 navigate("/karyawan/porto-pk");

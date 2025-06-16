@@ -4,9 +4,10 @@ import Sidebar from "./sidebarpekerjakreatif";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
-import axios from "axios";
+
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import api from "../api/api";
 
 const PKReportPembayaran = () => {
     useAuthRedirect(32);
@@ -39,8 +40,8 @@ const PKReportPembayaran = () => {
     useEffect(() => {
         if (!id) return; // ⛔ Jangan jalan kalau id belum tersedia
 
-        axios
-            .get(`${process.env.REACT_APP_API_URL}/workproofs/talent/${id}?validation_status=1`)
+        api
+            .get(`/workproofs/talent/${id}?validation_status=1`)
             .then((response) => setProofs(response.data.data))
             .catch((error) => console.error("Gagal mengambil data bukti kerja", error));
 
@@ -132,7 +133,7 @@ const PKReportPembayaran = () => {
                 sortOrder,
             });
 
-            const response = await axios.get(`${process.env.REACT_APP_API_URL}/report-payment-export?${params.toString()}`, {
+            const response = await api.get(`/report-payment-export?${params.toString()}`, {
                 responseType: 'blob', // penting supaya data diterima sebagai file
             });
 

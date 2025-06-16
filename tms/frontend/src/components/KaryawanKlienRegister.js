@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 import { useNavigate } from "react-router-dom";
+import api from "../api/api";
 
 const KaryawanKlienRegister = () => {
     useAuthRedirect(22);
@@ -25,7 +26,7 @@ const KaryawanKlienRegister = () => {
         if (!formData.email) return;
 
         const timeout = setTimeout(() => {
-            axios.post(`${process.env.REACT_APP_API_URL}/check-email`, { email: formData.email })
+            api.post(`/check-email`, { email: formData.email })
                 .then((res) => {
                     if (!res.data.available) {
                         Swal.fire({
@@ -50,7 +51,7 @@ const KaryawanKlienRegister = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post(`${process.env.REACT_APP_API_URL}/check-email`, {
+            const res = await api.post(`/check-email`, {
                 email: formData.email,
             });
 
@@ -66,7 +67,7 @@ const KaryawanKlienRegister = () => {
         }
 
         try {
-            await axios.post(`${process.env.REACT_APP_API_URL}/clients`, formData);
+            await api.post(`/clients`, formData);
             Swal.fire("Sukses", "Data klien berhasil disimpan", "success");
             setFormData({
                 name: "",

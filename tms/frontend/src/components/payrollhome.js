@@ -5,7 +5,8 @@ import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 import LoadingPage from "./loading";
 import { useSelector } from "react-redux";
-import axios from "axios";
+
+import api from "../api/api";
 
 const Payrollhome = () => {
   const loading = useAuthRedirect(33); // ID privilege untuk halaman IT
@@ -15,7 +16,7 @@ const Payrollhome = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/payroll-homepage`);
+        const res = await api.get(`/payroll-homepage`);
         setStats(res.data);
       } catch (err) {
         console.error('Gagal mengambil data dashboard:', err);

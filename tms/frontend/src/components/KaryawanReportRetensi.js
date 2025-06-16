@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 import useAuthRedirect from "../features/authRedirect";
@@ -7,6 +7,7 @@ import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
+import api from "../api/api";
 
 export default function KaryawanReportRetensi() {
     useAuthRedirect(27);
@@ -37,7 +38,7 @@ export default function KaryawanReportRetensi() {
                 sortKey,
                 sortOrder,
             };
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/laporan-retensi`, { params });
+            const res = await api.get(`/laporan-retensi`, { params });
             setData(res.data.data || []);
             setTotal(res.data.total || 0);
             const start = (page - 1) * limit + 1;

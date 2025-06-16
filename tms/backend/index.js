@@ -15,6 +15,9 @@ dontenv.config();
 
 const app = express();
 
+
+app.set("trust proxy", 1);
+
 const sessionStore = SequelizeStore(session.Store);
 
 const store = new sessionStore({
@@ -28,19 +31,28 @@ app.use(session({
     saveUninitialized: false,
     store: store,
     cookie: {
-        secure: false, // Set `true` jika pakai HTTPS
+        secure: process.env.NODE_ENV === "production",
         httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 12 // 12 jam
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 1000 * 60 * 60 * 12
     }
 }));
 
 app.use(cors({
     credentials: true,
-    origin : "http://localhost:3000"
+    origin: process.env.FRONTEND_URL,
 }));
+
+// 🔧 Tambahkan ini setelah cors():
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Credentials", "true");
+    next();
+});
+
+
 app.use(express.json());
 app.use(AuthRoute);
 app.use(ItRoute);
 app.use(KaryawanRoute);
 app.use(PekerjaKreatifRoute);
-app.listen(process.env.APP_PORT, ()=> console.log('Server up and running...'+new Date().toString()));
+app.listen(process.env.APP_PORT, () => console.log('Server up and running...' + new Date().toString()));

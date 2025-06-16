@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarit";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
+import api from "../api/api";
 
 const ItRolePrivilegeList = () => {
     useAuthRedirect(7);
@@ -18,7 +19,7 @@ const ItRolePrivilegeList = () => {
     const roleprivsPerPage = 10;
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/role-priv`)
+        api.get(`/role-priv`)
             .then(response => setRolePrivs(response.data))
             .catch(error => console.error("Gagal mengambil data hak akses:", error));
 
@@ -91,7 +92,7 @@ const ItRolePrivilegeList = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`${process.env.REACT_APP_API_URL}/role-priv/${roleprivId}`);
+                    await api.delete(`/role-priv/${roleprivId}`);
 
                     // Update state roleprivs tanpa fetch ulang
                     setRolePrivs(roleprivs.filter(rolepriv => rolepriv.id !== roleprivId));

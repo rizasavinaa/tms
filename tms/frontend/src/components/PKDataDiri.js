@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import Sidebar from "./sidebarpekerjakreatif";
 import Footer from "./footer";
@@ -11,6 +11,7 @@ import PKPortofolioList from "./PKPortofolioList";
 import { formatCurrency } from "../utils/format";
 import KaryawanKontrakListByTalent from "./KaryawanKontrakListByTalent";
 import { useSelector } from "react-redux";
+import api from "../api/api";
 
 const PKDataDiri = () => {
     useAuthRedirect(29);
@@ -63,11 +64,11 @@ const PKDataDiri = () => {
             try {
                 let endpoint = "";
                 if (activeTab === "riwayat") {
-                    endpoint = `${process.env.REACT_APP_API_URL}/talents-log?talent_id=${id}`;
+                    endpoint = `/talents-log?talent_id=${id}`;
                 }
 
                 if (endpoint) {
-                    const response = await axios.get(endpoint);
+                    const response = await api.get(endpoint);
                     setLogData(response.data);
                     setCurrentPage(1);
                 }
@@ -84,7 +85,7 @@ const PKDataDiri = () => {
 
     const fetchTalent = async () => {
         try {
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/talents/${id}`);
+            const res = await api.get(`/talents/${id}`);
             const data = res.data;
             setFormData({
                 name: data.name,
@@ -101,7 +102,7 @@ const PKDataDiri = () => {
 
             // Jika status Hired (2), ambil nama klien
             if (data.status_id === 2 && data.client_id) {
-                const clientRes = await axios.get(`${process.env.REACT_APP_API_URL}/clients/${data.client_id}`);
+                const clientRes = await api.get(`/clients/${data.client_id}`);
                 setClientName(clientRes.data.name);
             } else {
                 setClientName(""); // Kosongkan jika bukan status 2
@@ -113,7 +114,7 @@ const PKDataDiri = () => {
 
     const fetchCategories = async () => {
         try {
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/posisipks`);
+            const res = await api.get(`/posisipks`);
             setCategories(res.data);
         } catch (err) {
             console.error("Gagal mengambil data kategori:", err);
@@ -128,7 +129,7 @@ const PKDataDiri = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            await axios.put(`${process.env.REACT_APP_API_URL}/talents/${id}`, formData);
+            await api.put(`/talents/${id}`, formData);
             Swal.fire("Sukses", "Data berhasil diperbarui", "success");
         } catch (err) {
             Swal.fire("Error", "Gagal memperbarui data", "error");

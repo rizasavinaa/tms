@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
+import api from "../api/api";
 
 const KaryawanPosisiDetail = () => {
     useAuthRedirect(14);
@@ -23,7 +24,7 @@ const KaryawanPosisiDetail = () => {
     const [sortConfig, setSortConfig] = useState({ key: "created_at", direction: "desc" });
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/posisipks/${id}`)
+        api.get(`/posisipks/${id}`)
             .then(response => {
                 setPosisiPK(response.data);
                 setFormData({
@@ -42,11 +43,11 @@ const KaryawanPosisiDetail = () => {
             try {
                 let endpoint = "";
                 if (activeTab === "data") {
-                    endpoint = `${process.env.REACT_APP_API_URL}/posisipk-log?talent_category_id=${id}`;
+                    endpoint = `/posisipk-log?talent_category_id=${id}`;
                 } 
 
                 if (endpoint) {
-                    const response = await axios.get(endpoint);
+                    const response = await api.get(endpoint);
                     setLogData(response.data);
                     setCurrentPage(1);
                 }
@@ -69,7 +70,7 @@ const KaryawanPosisiDetail = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
-        axios.put(`${process.env.REACT_APP_API_URL}/posisipks/${id}`, formData)
+        api.put(`/posisipks/${id}`, formData)
             .then(() => {
                 Swal.fire("Sukses", "Data posisi pekerja kreatif berhasil diperbarui", "success");
             })

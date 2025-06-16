@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import Sidebar from "./sidebarit";
 import Footer from "./footer";
 import useAuthRedirect from "../features/authRedirect";
 import Jsfunction from "./jsfunction";
+import api from "../api/api";
 
 const ItUserDetail = () => {
     useAuthRedirect(3);
@@ -25,13 +26,13 @@ const ItUserDetail = () => {
     const [sortConfig, setSortConfig] = useState({ key: "created_at", direction: "desc" });
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/roles`)
+        api.get(`/roles`)
             .then(response => setRoles(response.data))
             .catch(error => console.error("Error fetching roles:", error));
     }, []);
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/users/${id}`)
+        api.get(`/users/${id}`)
             .then(response => {
                 setUser(response.data);
                 setFormData({
@@ -52,13 +53,13 @@ const ItUserDetail = () => {
             try {
                 let endpoint = "";
                 if (activeTab === "data") {
-                    endpoint = `${process.env.REACT_APP_API_URL}/user-logdc?user_id=${id}`;
+                    endpoint = `/user-logdc?user_id=${id}`;
                 } else if (activeTab === "activity") {
-                    endpoint = `${process.env.REACT_APP_API_URL}/user-logac?user_id=${id}`;
+                    endpoint = `/user-logac?user_id=${id}`;
                 }
 
                 if (endpoint) {
-                    const response = await axios.get(endpoint);
+                    const response = await api.get(endpoint);
                     setLogData(response.data);
                     setCurrentPage(1);
                 }
@@ -82,7 +83,7 @@ const ItUserDetail = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
-        axios.put(`${process.env.REACT_APP_API_URL}/users/${id}`, formData)
+        api.put(`/users/${id}`, formData)
             .then(() => {
                 Swal.fire("Sukses", "Data user berhasil diperbarui", "success");
             })
@@ -96,7 +97,7 @@ const ItUserDetail = () => {
     const handleResetPassword = (e) => {
         e.preventDefault();
         setLoading(true);
-        axios.post(`${process.env.REACT_APP_API_URL}/user-reset-password/${id}`)
+        api.post(`/user-reset-password/${id}`)
             .then(() => {
                 Swal.fire("Sukses", "Email reset password telah dikirim", "success");
             })

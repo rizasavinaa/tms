@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/api";
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -18,8 +18,8 @@ const ResetPassword = () => {
 
   useEffect(() => {
     if (!token) return;
-    axios
-      .get(`${process.env.REACT_APP_API_URL}/verify-reset-token?token=${token}`)
+    api
+      .get(`/verify-reset-token?token=${token}`)
       .then(() => setIsValid(true))
       .catch(() => setIsValid(false));
   }, [token]);
@@ -40,7 +40,7 @@ const ResetPassword = () => {
     }
   
     try {
-        const response = await axios.post(`${process.env.REACT_APP_API_URL}/reset-password`, {
+        const response = await api.post(`/reset-password`, {
             token,
             password,
             confPassword: confirmPassword, // Tambahkan ini!

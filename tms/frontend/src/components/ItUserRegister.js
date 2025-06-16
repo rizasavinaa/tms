@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+
 import Swal from "sweetalert2";
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarit";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { useNavigate } from "react-router-dom";
+import api from "../api/api";
 
 const ItUserRegister = () => {  // 🔹 Nama komponen harus huruf besar di awal
   useAuthRedirect(4);
@@ -20,14 +21,14 @@ const ItUserRegister = () => {  // 🔹 Nama komponen harus huruf besar di awal
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_URL}/roles`)
+    api.get(`/roles`)
       .then(response => setRoles(response.data))
       .catch(error => console.error("Error fetching roles:", error));
   }, []);
 
   // const handleSubmit = (e) => {
   //   e.preventDefault();
-  //   axios.post(`${process.env.REACT_APP_API_URL}/users`, {
+  //   api.post(`/users`, {
   //     email,
   //     fullname,
   //     role_id: selectedRole,
@@ -40,7 +41,7 @@ const ItUserRegister = () => {  // 🔹 Nama komponen harus huruf besar di awal
     e.preventDefault();
     setLoading(true); // Aktifkan overlay loading
 
-    axios.post(`${process.env.REACT_APP_API_URL}/users`, {
+    api.post(`/users`, {
       email,
       fullname,
       role_id: selectedRole,

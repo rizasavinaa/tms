@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+
 import Sidebar from "./sidebarclient";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
@@ -8,7 +8,7 @@ import useAuthRedirect from "../features/authRedirect";
 import { saveAs } from "file-saver";
 import Swal from "sweetalert2";
 import { useSelector } from "react-redux";
-
+import api from "../api/api";
 const KlienPKList = () => {
     useAuthRedirect(19);
     const { user } = useSelector((state) => state.auth);
@@ -28,7 +28,7 @@ const KlienPKList = () => {
         if (!user || !user.client_id) return; // ⬅️ tambahkan guard clause
 
         setLoading(true);
-        axios.get(`${process.env.REACT_APP_API_URL}/talents/recruited/${user.client_id}`, {
+        api.get(`/talents/recruited/${user.client_id}`, {
             params: {
                 search,
                 filter,
@@ -92,7 +92,7 @@ const KlienPKList = () => {
     };
 
     const handleExportExcel = () => {
-    axios.get(`${process.env.REACT_APP_API_URL}/export-talents/recruited`, {
+    api.get(`/export-talents/recruited`, {
         params: {
             search,
             filter,

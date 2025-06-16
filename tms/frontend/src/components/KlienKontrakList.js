@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarclient";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import api from "../api/api";
 
 const KaryawanKontrakList = () => {
     useAuthRedirect(25);
@@ -25,7 +26,7 @@ const KaryawanKontrakList = () => {
         if (!user || !user.client_id) return; // ⬅️ tambahkan guard clause
 
         setLoading(true);
-         axios.get(`${process.env.REACT_APP_API_URL}/talents-clients/${id}`)
+         api.get(`/talents-clients/${id}`)
             .then(response => setContracts(response.data))
             .catch(error => console.error("Gagal mengambil data kontrak", error))
             .finally(() => setLoading(false));

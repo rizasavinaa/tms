@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarit";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
+import api from "../api/api";
 
 const ItUserList = () => {
     useAuthRedirect(3);
@@ -18,7 +19,7 @@ const ItUserList = () => {
     const usersPerPage = 10;
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/users`)
+        api.get(`/users`)
             .then(response => setUsers(response.data))
             .catch(error => console.error("Gagal mengambil data user:", error));
 
@@ -81,7 +82,7 @@ const ItUserList = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await axios.patch(`${process.env.REACT_APP_API_URL}/users/${userId}`, {
+                    await api.patch(`/users/${userId}`, {
                         status: newStatus,
                     });
 

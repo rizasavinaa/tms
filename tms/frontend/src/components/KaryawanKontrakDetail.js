@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 import Select from "react-select";
 import { formatCurrency } from "../utils/format";
+import api from "../api/api";
 
 const KaryawanKontrakDetail = () => {
     useAuthRedirect(25);
@@ -39,7 +40,7 @@ const KaryawanKontrakDetail = () => {
     useEffect(() => {
         const checkProof = async () => {
             try {
-                const res = await axios.get(`${process.env.REACT_APP_API_URL}/contracts/${id}/editable`);
+                const res = await api.get(`/contracts/${id}/editable`);
                 setIsLocked(res.data.hasProof);
             } catch (error) {
                 console.error("Gagal cek bukti kerja:", error);
@@ -52,7 +53,7 @@ const KaryawanKontrakDetail = () => {
     useEffect(() => {
         const fetchClients = async () => {
             try {
-                const res = await axios.get(`${process.env.REACT_APP_API_URL}/clients`);
+                const res = await api.get(`/clients`);
                 let options = res.data.map(c => ({ value: c.id, label: c.name }));
 
                 // Cek apakah opsi "other" sudah ada
@@ -71,7 +72,7 @@ const KaryawanKontrakDetail = () => {
     }, [id]);
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/contracts/${id}`)
+        api.get(`/contracts/${id}`)
             .then(res => {
                 const data = res.data;
                 setFormData({
@@ -86,7 +87,7 @@ const KaryawanKontrakDetail = () => {
 
                 // ✅ Fetch talent berdasarkan talent_id dari porto
                 if (data.talent_id) {
-                    axios.get(`${process.env.REACT_APP_API_URL}/talents/${data.talent_id}`)
+                    api.get(`/talents/${data.talent_id}`)
                         .then(res => setTalent(res.data))
                         .catch(error => console.error("Error fetch talent:", error));
                 }
@@ -96,7 +97,7 @@ const KaryawanKontrakDetail = () => {
     useEffect(() => {
         if (activeTab === "data") {
             setLoadingLogs(true);
-            axios.get(`${process.env.REACT_APP_API_URL}/contracts-log?talent_work_history_id=${id}`)
+            api.get(`/contracts-log?talent_work_history_id=${id}`)
                 .then(res => {
                     setLogData(res.data);
                     setCurrentPage(1);
@@ -129,7 +130,7 @@ const KaryawanKontrakDetail = () => {
     //         }
 
     //         // Cek kontrak aktif lain
-    //         const check = await axios.get(`${process.env.REACT_APP_API_URL}/contracts-check-active?t=${talentId}&exclude=${id}`);
+    //         const check = await api.get(`/contracts-check-active?t=${talentId}&exclude=${id}`);
     //         if (check.data.isActive) {
     //             Swal.fire({
     //                 icon: "warning",
@@ -151,7 +152,7 @@ const KaryawanKontrakDetail = () => {
 
     //     // Kirim form jika semua valid
     //     try {
-    //         // await axios.put(`${process.env.REACT_APP_API_URL}/contracts/${id}`, formData);
+    //         // await api.put(`/contracts/${id}`, formData);
 
     //         const payload = new FormData();
     //         payload.append("client_id", formData.client_id);
@@ -165,7 +166,7 @@ const KaryawanKontrakDetail = () => {
     //             payload.append("contract_file", formData.contract_file);
     //         }
 
-    //         await axios.put(`${process.env.REACT_APP_API_URL}/contracts/${id}`, payload, {
+    //         await api.put(`/contracts/${id}`, payload, {
     //             headers: {
     //                 "Content-Type": "multipart/form-data"
     //             }
@@ -205,7 +206,7 @@ const KaryawanKontrakDetail = () => {
                 }
 
                 // Cek kontrak aktif lain
-                const check = await axios.get(`${process.env.REACT_APP_API_URL}/contracts-check-active?t=${talentId}&exclude=${id}`);
+                const check = await api.get(`/contracts-check-active?t=${talentId}&exclude=${id}`);
                 if (check.data.isActive) {
                     Swal.fire({
                         icon: "warning",
@@ -248,7 +249,7 @@ const KaryawanKontrakDetail = () => {
                 payload.append("contract_file", formData.contract_file);
             }
 
-            await axios.put(`${process.env.REACT_APP_API_URL}/contracts/${id}`, payload, {
+            await api.put(`/contracts/${id}`, payload, {
                 headers: {
                     "Content-Type": "multipart/form-data"
                 }
@@ -261,7 +262,7 @@ const KaryawanKontrakDetail = () => {
             });
 
             // Reload data kontrak terbaru tanpa reload full page
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/contracts/${id}`);
+            const res = await api.get(`/contracts/${id}`);
             const data = res.data;
             setFormData({
                 client_id: data.client_id === 0 ? "other" : data.client_id,

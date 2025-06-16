@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
+import api from "../api/api";
 
 const KaryawanPortoList = () => {
     useAuthRedirect(17);
@@ -20,7 +21,7 @@ const KaryawanPortoList = () => {
 
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/portopks`)
+        api.get(`/portopks`)
             .then(response => setPortos(response.data))
             .catch(error => console.error("Gagal mengambil data portofolio", error));
 
@@ -62,7 +63,7 @@ const KaryawanPortoList = () => {
         if (confirm.isConfirmed) {
             try {
                 setLoading(true); // ⬅️ Aktifkan overlay
-                await axios.delete(`${process.env.REACT_APP_API_URL}/portopks/${id}`);
+                await api.delete(`/portopks/${id}`);
                 setPortos(prev => prev.filter(p => p.id !== id));
                 Swal.fire("Dihapus!", "Portofolio berhasil dihapus.", "success");
             } catch (error) {

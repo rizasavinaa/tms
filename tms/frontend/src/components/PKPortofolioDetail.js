@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarpekerjakreatif";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
-
+import api from "../api/api";
 
 const PKDataDiri = () => {
     useAuthRedirect(16);
@@ -25,7 +25,7 @@ const PKDataDiri = () => {
     const fileInputRef = useRef(null);
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/portopks/${id}`)
+        api.get(`/portopks/${id}`)
             .then(response => {
                 setPorto(response.data);
                 setFormData({
@@ -40,7 +40,7 @@ const PKDataDiri = () => {
         if (activeTab === "data") {
             setLogData([]);
             setLoadingLogs(true);
-            axios.get(`${process.env.REACT_APP_API_URL}/portopk-log?talent_portofolio_id=${id}`)
+            api.get(`/portopk-log?talent_portofolio_id=${id}`)
                 .then(response => setLogData(response.data))
                 .catch(error => {
                     console.error("Gagal mengambil data log:", error);
@@ -65,7 +65,7 @@ const PKDataDiri = () => {
             payload.append("porto_file", formData.porto_file);
         }
 
-        axios.put(`${process.env.REACT_APP_API_URL}/portopks/${id}`, payload, {
+        api.put(`/portopks/${id}`, payload, {
             headers: {
                 "Content-Type": "multipart/form-data",
             },
@@ -74,7 +74,7 @@ const PKDataDiri = () => {
                 Swal.fire("Sukses", "Portofolio berhasil diperbarui", "success");
 
                 // ✅ Reload data portofolio agar deskripsi dan link baru tampil
-                axios.get(`${process.env.REACT_APP_API_URL}/portopks/${id}`)
+                api.get(`/portopks/${id}`)
                     .then(response => {
                         setPorto(response.data);
                         setFormData({

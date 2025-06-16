@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import Sidebar from "./sidebarit";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from "recharts";
+import api from "../api/api";
 
 const Ithome = () => {
   useAuthRedirect(1);
@@ -13,7 +13,7 @@ const Ithome = () => {
 
   const COLORS = ["#0A2D5F", "#133F83"];
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_URL}/user-summary`)
+    api.get(`/user-summary`)
       .then((res) => {
         setChartData(res.data);
       })

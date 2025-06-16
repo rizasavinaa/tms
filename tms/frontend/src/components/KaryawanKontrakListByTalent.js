@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import { Link } from "react-router-dom";
 import { formatRupiah } from "../utils/format";
 import { useSelector } from "react-redux";
+import api from "../api/api";
 
 const KaryawanKontrakListByTalent = ({ talentId }) => {
   const { user } = useSelector((state) => state.auth);
@@ -39,7 +40,7 @@ const KaryawanKontrakListByTalent = ({ talentId }) => {
   const fetchKontrak = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/contracts/talent/${talentId}`);
+      const res = await api.get(`/contracts/talent/${talentId}`);
       setKontrak(res.data);
     } catch (error) {
       console.error("Gagal mengambil data kontrak kerja", error);
@@ -67,7 +68,7 @@ const KaryawanKontrakListByTalent = ({ talentId }) => {
     if (confirm.isConfirmed) {
       try {
         setLoading(true);
-        await axios.delete(`${process.env.REACT_APP_API_URL}/workhistory/${id}`);
+        await api.delete(`/workhistory/${id}`);
         setKontrak((prev) => prev.filter((k) => k.id !== id));
         Swal.fire("Dihapus!", "Kontrak berhasil dihapus.", "success");
       } catch (error) {

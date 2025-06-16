@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import Sidebar from "./sidebarpekerjakreatif";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 import Select from "react-select";
 import { formatCurrency } from "../utils/format";
+import api from "../api/api";
 
 const PKKontrakDetail = () => {
     useAuthRedirect(25);
@@ -35,7 +36,7 @@ const PKKontrakDetail = () => {
     useEffect(() => {
         const fetchClients = async () => {
             try {
-                const res = await axios.get(`${process.env.REACT_APP_API_URL}/clients`);
+                const res = await api.get(`/clients`);
                 let options = res.data.map(c => ({ value: c.id, label: c.name }));
 
                 // Cek apakah opsi "other" sudah ada
@@ -54,7 +55,7 @@ const PKKontrakDetail = () => {
     }, [id]);
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/contracts/${id}`)
+        api.get(`/contracts/${id}`)
             .then(res => {
                 const data = res.data;
                 setFormData({
@@ -72,7 +73,7 @@ const PKKontrakDetail = () => {
     useEffect(() => {
         if (activeTab === "data") {
             setLoadingLogs(true);
-            axios.get(`${process.env.REACT_APP_API_URL}/contracts-log?talent_work_history_id=${id}`)
+            api.get(`/contracts-log?talent_work_history_id=${id}`)
                 .then(res => {
                     setLogData(res.data);
                     setCurrentPage(1);
@@ -105,7 +106,7 @@ const PKKontrakDetail = () => {
             }
 
             // Cek kontrak aktif lain
-            const check = await axios.get(`${process.env.REACT_APP_API_URL}/contracts-check-active?t=${talentId}&exclude=${id}`);
+            const check = await api.get(`/contracts-check-active?t=${talentId}&exclude=${id}`);
             if (check.data.isActive) {
                 Swal.fire({
                     icon: "warning",
@@ -127,7 +128,7 @@ const PKKontrakDetail = () => {
 
         // Kirim form jika semua valid
         try {
-            await axios.put(`${process.env.REACT_APP_API_URL}/contracts/${id}`, formData);
+            await api.put(`/contracts/${id}`, formData);
             Swal.fire({
                 icon: "success",
                 title: "Berhasil",

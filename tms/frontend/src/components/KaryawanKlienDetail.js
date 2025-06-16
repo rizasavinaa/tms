@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
 import { formatRupiah } from "../utils/format";
-
+import api from "../api/api";
 
 const KaryawanKlienDetail = () => {
     useAuthRedirect(21);
@@ -39,7 +39,7 @@ const KaryawanKlienDetail = () => {
     const [currentPagePk, setCurrentPagePk] = useState(1);
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/clients/${id}`)
+        api.get(`/clients/${id}`)
             .then(res => {
                 setClient(res.data);
                 setFormData({
@@ -57,7 +57,7 @@ const KaryawanKlienDetail = () => {
         if (activeTab !== "data") return;
         setLogData([]);
         setLoadingLogs(true);
-        axios.get(`${process.env.REACT_APP_API_URL}/clients-log?client_id=${id}`)
+        api.get(`/clients-log?client_id=${id}`)
             .then(res => {
                 setLogData(res.data);
                 setCurrentPage(1);
@@ -73,7 +73,7 @@ const KaryawanKlienDetail = () => {
         if (activeTab !== "pk" || !id) return;
         setTalents([]);
         setLoadingTalents(true);
-        axios.get(`${process.env.REACT_APP_API_URL}/talents-clients/${id}`)
+        api.get(`/talents-clients/${id}`)
             .then(res => setTalents(res.data))
             .catch(err => {
                 console.error("Error fetching talents:", err);
@@ -90,7 +90,7 @@ const KaryawanKlienDetail = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
-        axios.put(`${process.env.REACT_APP_API_URL}/clients/${id}`, formData)
+        api.put(`/clients/${id}`, formData)
             .then(() => {
                 Swal.fire("Sukses", "Data client berhasil diperbarui", "success");
             })

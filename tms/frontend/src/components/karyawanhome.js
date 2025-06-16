@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import axios from "axios";
+
 import { Link } from "react-router-dom";
 import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 import LoadingPage from "./loading"; // Import halaman loading
+import api from "../api/api";
 
 const KaryawanHome = () => {
 
@@ -20,7 +21,7 @@ const KaryawanHome = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/karyawan-homepage`);
+        const res = await api.get(`/karyawan-homepage`);
         setStats(res.data);
       } catch (err) {
         console.error('Gagal mengambil data dashboard:', err);

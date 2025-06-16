@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import axios from "axios";
+
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarkaryawan";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
+import api from "../api/api";
 
 const KaryawanPosisiList = () => {
     useAuthRedirect(14);
@@ -18,7 +19,7 @@ const KaryawanPosisiList = () => {
     const posisipksPerPage = 10;
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/posisipks`)
+        api.get(`/posisipks`)
             .then(response => setPosisiPks(response.data))
             .catch(error => console.error("Gagal mengambil data posisi pekerja kreatif", error));
 

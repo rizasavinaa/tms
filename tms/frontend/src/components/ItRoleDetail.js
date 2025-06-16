@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import axios from "axios";
 import useAuthRedirect from "../features/authRedirect";
 import Sidebar from "./sidebarit";
 import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import { Link } from "react-router-dom";
+import api from "../api/api";
 
 const ItRoleDetail = () => {
     useAuthRedirect(5);
@@ -23,7 +23,7 @@ const ItRoleDetail = () => {
     const [sortConfig, setSortConfig] = useState({ key: "created_at", direction: "desc" });
 
     useEffect(() => {
-        axios.get(`${process.env.REACT_APP_API_URL}/roles/${id}`)
+        api.get(`/roles/${id}`)
             .then(response => {
                 setRole(response.data);
                 setFormData({
@@ -42,13 +42,13 @@ const ItRoleDetail = () => {
             try {
                 let endpoint = "";
                 if (activeTab === "data") {
-                    endpoint = `${process.env.REACT_APP_API_URL}/role-log?role_id=${id}`;
+                    endpoint = `/role-log?role_id=${id}`;
                 } else if (activeTab === "access") {
-                    endpoint = `${process.env.REACT_APP_API_URL}/role-access?role_id=${id}`;
+                    endpoint = `/role-access?role_id=${id}`;
                 }
 
                 if (endpoint) {
-                    const response = await axios.get(endpoint);
+                    const response = await api.get(endpoint);
                     setLogData(response.data);
                     setCurrentPage(1);
                 }
@@ -71,7 +71,7 @@ const ItRoleDetail = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
-        axios.put(`${process.env.REACT_APP_API_URL}/roles/${id}`, formData)
+        api.put(`/roles/${id}`, formData)
             .then(() => {
                 Swal.fire("Sukses", "Data role berhasil diperbarui", "success");
             })

@@ -4,8 +4,9 @@ import Footer from "./footer";
 import Jsfunction from "./jsfunction";
 import useAuthRedirect from "../features/authRedirect";
 import { useSelector } from "react-redux";
-import axios from "axios";
+
 import moment from "moment";
+import api from "../api/api";
 
 const ReminderBox = ({ message }) => (
   <div className="alert alert-warning d-flex align-items-center p-3 mb-3" role="alert">
@@ -25,7 +26,7 @@ const Pekerjakreatifhome = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/reminderspk`);
+        const res = await api.get(`/reminderspk`);
 
         if (res.data.reminderPorto) setShowReminderPorto(true);
         if (res.data.reminderBuktiKerja) setShowReminderBuktiKerja(true);
