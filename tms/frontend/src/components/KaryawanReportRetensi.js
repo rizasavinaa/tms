@@ -245,9 +245,9 @@ export default function KaryawanReportRetensi() {
                                             <td>{new Date(item.start_date).toLocaleDateString('id-ID')}</td>
                                             <td>{new Date(item.end_date).toLocaleDateString('id-ID')}</td>
                                             <td>
-                                                <Link to={`/karyawan/kontrak/${item.id}`} className="btn btn-secondary btn-sm">
+                                                <a href={`/karyawan/kontrak/${item.id}`} className="btn btn-secondary btn-sm">
                                                     Lihat Detail
-                                                </Link>
+                                                </a>
                                             </td>
                                         </tr>
                                     ))

@@ -94,14 +94,22 @@ export const exportTalentWorkProofExcel = async (req, res) => {
     try {
         const { search = "", filter = "id", startDate, endDate } = req.query;
         const where = {};
-
-        // Filter tanggal
         if (startDate || endDate) {
-            where.start_date = {};
-            if (startDate) where.start_date[Op.gte] = new Date(startDate);
-            if (endDate) where.start_date[Op.lte] = new Date(endDate);
-        }
+            const start = startDate ? new Date(startDate) : null;
+            const end = endDate ? new Date(endDate) : null;
 
+            if (start) start.setHours(0, 0, 0, 0);
+            if (end) end.setHours(23, 59, 59, 999);
+
+            where[Op.and] = [];
+            if (start) {
+                where[Op.and].push({ start_date: { [Op.gte]: start } });
+            }
+            if (end) {
+                where[Op.and].push({ end_date: { [Op.lte]: end } });
+            }
+        }
+        
         // Filter berdasarkan kolom utama
         if (filter === "id" && search) {
             where.id = { [Op.like]: `%${search}%` };
@@ -129,14 +137,23 @@ export const exportTalentWorkProofExcel = async (req, res) => {
             },
         ];
 
-        // Ambil data dari DB
         const data = await TalentWorkProof.findAll({
             where,
             include,
             order: [["id", "DESC"]],
         });
 
-        // Format data jadi array objek biasa untuk Excel
+        const validationStatusMap = {
+            0: "New",
+            1: "Validated",
+            2: "Rejected",
+        };
+
+        const paymentStatusMap = {
+            0: "Unpaid",
+            1: "Paid",
+        };
+
         const exportData = data.map((item) => {
             const json = item.toJSON();
             return {
@@ -146,8 +163,8 @@ export const exportTalentWorkProofExcel = async (req, res) => {
                 Posisi: json.talent_work_history?.category || "",
                 "Periode Mulai": new Date(json.start_date).toLocaleDateString("id-ID"),
                 "Periode Berakhir": new Date(json.end_date).toLocaleDateString("id-ID"),
-                "Status Penilaian": json.validation_status,
-                "Status Pembayaran": json.payment_status,
+                "Status Penilaian": validationStatusMap[json.validation_status] || "Unknown",
+                "Status Pembayaran": paymentStatusMap[json.payment_status] || "Unknown",
             };
         });
 
@@ -583,6 +600,7 @@ export const updateTalentWorkProof = async (req, res) => {
         const updatedFields = {};
         const oldValues = {};
         const updatedBy = req.session.userId;
+        const wasRejected = proof.validation_status === 2;
 
         // Cek perubahan field yang bisa diubah
         if (description !== undefined && description !== proof.description) {
@@ -597,7 +615,10 @@ export const updateTalentWorkProof = async (req, res) => {
             updatedFields.end_date = end_date;
             oldValues.end_date = proof.end_date;
         }
-
+        if (proof.validation_status === 2) {
+            updatedFields.validation_status = 0;
+            oldValues.validation_status = proof.validation_status;
+        }
         // Update file jika ada file baru
         if (req.file) {
             if (proof.public_id) {
@@ -651,6 +672,17 @@ export const updateTalentWorkProof = async (req, res) => {
         }, { transaction });
 
         await transaction.commit();
+        await proof.reload();
+        if (wasRejected) {
+            await sendWorkProofNotificationEmail(
+                proof.talent_id,
+                updatedFields.start_date || proof.start_date,
+                updatedFields.end_date || proof.end_date,
+                updatedFields.file_link || proof.file_link,
+                id
+            );
+        }
+
         res.status(200).json({ message: "Data bukti kerja berhasil diperbarui" });
     } catch (error) {
         await transaction.rollback();

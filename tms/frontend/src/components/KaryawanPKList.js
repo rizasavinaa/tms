@@ -68,12 +68,20 @@ const KaryawanPKList = () => {
             sortColumn === "status" ? b.talent_status?.name :
                 b[sortColumn];
 
+        // Convert to lowercase if string
         if (typeof aValue === "string") aValue = aValue.toLowerCase();
         if (typeof bValue === "string") bValue = bValue.toLowerCase();
+
+        // Convert to number if sorting by gaji
+        if (sortColumn === "last_salary") {
+            aValue = Number(aValue) || 0;
+            bValue = Number(bValue) || 0;
+        }
 
         if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
         if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
         return 0;
+
     });
 
     const indexOfLastTalent = currentPage * talentsPerPage;
@@ -122,7 +130,7 @@ const KaryawanPKList = () => {
                 <div className="app-content-header">
                     <div className="container-fluid">
                         <div className="row">
-                            <div className="col-sm-6"><h3>Data Talent</h3></div>
+                            <div className="col-sm-6"><h3>Data Pekerja Kreatif</h3></div>
                             <div className="col-sm-6">
                                 <ol className="breadcrumb float-sm-end">
                                     <li className="breadcrumb-item"><a href="#">Home</a></li>
@@ -169,7 +177,7 @@ const KaryawanPKList = () => {
                                                         { key: "name", label: "Nama" },
                                                         { key: "category", label: "Posisi" },
                                                         { key: "status", label: "Status" },
-                                                        { key: "last_salary", label: "Gaji Terakhir" },
+                                                        { key: "last_salary", label: "Gaji" },
                                                     ].map(col => (
                                                         <th key={col.key} onClick={() => handleSort(col.key)} style={{ cursor: "pointer" }}>
                                                             {col.label} {sortColumn === col.key ? (sortOrder === "asc" ? "▲" : "▼") : ""}

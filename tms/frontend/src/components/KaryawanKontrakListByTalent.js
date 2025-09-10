@@ -173,9 +173,9 @@ const KaryawanKontrakListByTalent = ({ talentId }) => {
                       <i className="fas fa-download"></i>
                     </a>
 
-                    <Link  to={role === 2 ? `/karyawan/kontrak/${k.id}` : `/pekerjakreatif/kontrak/${k.id}`} className="btn btn-secondary btn-sm me-1">
+                    <a  href={role === 2 ? `/karyawan/kontrak/${k.id}` : `/pekerjakreatif/kontrak/${k.id}`} className="btn btn-secondary btn-sm me-1">
                       Lihat Detail
-                    </Link>
+                    </a>
                   </td>
                 </tr>
               ))}

@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 import cloudinary from "../config/Cloudinary.js";
+import nodemailer from "nodemailer";
 import sequelize from "../config/Database.js";
 import TalentWorkHistory from "../models/TalentWorkHistoryModel.js";
 import TalentWorkHistoryLog from "../models/TalentWorkHistoryLogModel.js";
@@ -14,6 +15,9 @@ import User from "../models/UserModel.js";
 import { Op } from "sequelize";
 import path from "path";
 import { promisify } from "util";
+import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter.js";
+dayjs.extend(isSameOrAfter);
 const unlinkAsync = promisify(fs.unlink);
 
 const getResourceType = (mimetype) => {
@@ -82,7 +86,7 @@ export const createTalentWorkHistory = async (req, res) => {
         resource_type: result.resource_type,
         category, // string kategori saat itu
         createdby,
-        status: 0, // diset tetap 0 sesuai permintaan
+        status: 0,
       },
       { transaction }
     );
@@ -117,7 +121,7 @@ export const createTalentWorkHistory = async (req, res) => {
       { transaction }
     );
 
-    if (parsedClientId !== 0) {
+    if (parsedClientId !== 0 && end_date && dayjs(end_date).isSameOrAfter(dayjs(), "day")) {
       await Talent.update({
         status_id: 2,
         client_id: parsedClientId
@@ -139,7 +143,18 @@ export const createTalentWorkHistory = async (req, res) => {
         },
         { transaction }
       );
+
+      // 💌 Kirim email ke client
+      const ContractFile = workHistory.file_link;
+      const talentDetailLink = `${process.env.FRONTEND_URL}/client/pk/${talent_id}`;
+      const client = await Client.findByPk(parsedClientId);
+      const clientName = client?.name || "perusahaan terkait";
+      await sendContractNotificationToClient(parsedClientId, talent.name, ContractFile, talentDetailLink);
+
+      // 💌 Kirim email ke talent
+      await sendContractNotificationToTalent(talent.email, clientName || "perusahaan terkait", ContractFile, talent.name);
     }
+
 
 
     fs.unlink(file.path, (err) => {
@@ -158,6 +173,75 @@ export const createTalentWorkHistory = async (req, res) => {
       });
     }
     return res.status(500).json({ message: "Gagal registrasi kontrak." });
+  }
+};
+
+export const sendContractNotificationToClient = async (clientId, talentName, contractLink, talentDetailLink) => {
+  try {
+    const client = await Client.findByPk(clientId);
+    if (!client || !client.email) {
+      console.error("Email client tidak ditemukan.");
+      return;
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_SECURE === "true",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: client.email,
+      subject: `Kontrak Pekerja Kreatif Telah Terbit`,
+      html: `
+        <p>Halo <strong>${client.name}</strong>,</p>
+        <p>Kontrak pekerja kreatif dengan nama <strong>${talentName}</strong> telah terbit untuk perusahaan Anda.</p>
+        <p>🔗 <a href="${contractLink}">Lihat File Kontrak</a></p>
+        <p>👤 <a href="${talentDetailLink}">Lihat Profil Pekerja Kreatif</a></p>
+        <p>Terima kasih.</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("✅ Email kontrak berhasil dikirim ke client.");
+  } catch (error) {
+    console.error("🔥 Gagal mengirim email kontrak ke client:", error);
+  }
+};
+
+export const sendContractNotificationToTalent = async (talentEmail, companyName, contractLink, talentName) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_SECURE === "true",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: talentEmail,
+      subject: `Kontrak Anda dengan ${companyName} Telah Terbit`,
+      html: `
+        <p>Halo <strong>${talentName}</strong>,</p>
+        <p>Kontrak kerja Anda dengan perusahaan <strong>${companyName}</strong> telah terbit.</p>
+        <p>🔗 <a href="${contractLink}">Lihat File Kontrak</a></p>
+        <p>Terima kasih.</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("✅ Email kontrak berhasil dikirim ke talent.");
+  } catch (error) {
+    console.error("🔥 Gagal mengirim email kontrak ke talent:", error);
   }
 };
 
@@ -180,7 +264,7 @@ export const getTalentWorkHistoryByTalentId = async (req, res) => {
     // Format response supaya client_name jadi properti langsung
     const formatted = workHistories.map(wh => ({
       id: wh.id,
-      client_name: wh.Client?.name || wh.description,
+      client_name: wh.client?.name || wh.description,
       category: wh.category,
       salary: wh.salary,
       start_date: wh.start_date,
@@ -511,7 +595,7 @@ export const updateTalentContract = async (req, res) => {
         talentOldValues.client_id = talent.client_id;
         talentOldValues.status = talent.status;
         talentUpdatedFields.client_id = 0;
-        talentUpdatedFields.status = 1;
+        talentUpdatedFields.status_id = 1;
 
         await Talent.update(talentUpdatedFields, { where: { id: talentId }, transaction });
 
@@ -630,30 +714,41 @@ export const getContracts = async (req, res) => {
 
 // Cek apakah kontrak bisa diedit
 export const checkContractEditable = async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    try {
-        // Cari bukti kerja berdasarkan talent_work_history_id
-        const existingProof = await TalentWorkProof.findOne({
-            where: { talent_work_history_id: id }
-        });
+  try {
+    // Cari bukti kerja berdasarkan talent_work_history_id
+    const existingProof = await TalentWorkProof.findOne({
+      where: { talent_work_history_id: id }
+    });
 
-        if (existingProof) {
-            return res.status(200).json({
-                hasProof: true,
-                message: "Kontrak tidak dapat diedit karena sudah memiliki bukti kerja."
-            });
-        }
-
-        return res.status(200).json({
-            editable: true,
-            message: "Kontrak masih dapat diedit."
-        });
-    } catch (error) {
-        console.error("Gagal cek kontrak:", error);
-        return res.status(500).json({
-            editable: false,
-            message: "Terjadi kesalahan pada server."
-        });
+    if (existingProof) {
+      return res.status(200).json({
+        editable: false,
+        hasProof: true,
+        message: "Kontrak tidak dapat diedit karena sudah memiliki bukti kerja."
+      });
     }
+
+    // Cari kontrak untuk cek end_date
+    const contract = await TalentWorkHistory.findByPk(id);
+    if (contract && contract.end_date && new Date() > contract.end_date) {
+      return res.status(200).json({
+        editable: false,
+        expired: true,
+        message: "Kontrak tidak dapat diedit karena sudah melewati tanggal berakhir."
+      });
+    }
+
+    return res.status(200).json({
+      editable: true,
+      message: "Kontrak masih dapat diedit."
+    });
+  } catch (error) {
+    console.error("Gagal cek kontrak:", error);
+    return res.status(500).json({
+      editable: false,
+      message: "Terjadi kesalahan pada server."
+    });
+  }
 };

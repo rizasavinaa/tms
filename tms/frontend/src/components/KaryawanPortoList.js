@@ -133,9 +133,9 @@ const KaryawanPortoList = () => {
 
                                             </div>
                                             <div className="me-2" style={{ width: "20%" }}>
-                                                <Link to="/karyawan/porto-preregister" className="btn btn-success btn-sm">
+                                                <a href="/karyawan/porto-preregister" className="btn btn-success btn-sm">
                                                     Tambah Portofolio
-                                                </Link>
+                                                </a>
                                             </div>
                                         </div>
                                     </div>

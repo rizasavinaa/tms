@@ -143,7 +143,7 @@ const KaryawanKlienList = () => {
                                                         <td>{client.name}</td>
                                                         <td>{client.supervisor_name}</td>
                                                         <td>{client.email}</td>
-                                                        <td>{new Date(client.joined_date).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}</td>
+                                                        <td>{new Date(client.joined_date).toLocaleDateString('id-ID')}</td>
                                                         <td>
                                                             <a
                                                                 href={`/karyawan/klien/${client.id}`}

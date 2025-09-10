@@ -25,23 +25,29 @@ const store = new sessionStore({
 });
 
 
+app.use(cors({
+    credentials: true,
+    origin: [
+        process.env.FRONTEND_URL,              // misalnya http://localhost:3000
+        /\.trycloudflare\.com$/                // semua subdomain Cloudflare Tunnel
+    ],
+}));
+
 app.use(session({
     secret: process.env.SESS_SECRET,
     resave: false,
     saveUninitialized: false,
-    store: store,
+    store: store, // SequelizeStore
     cookie: {
-        secure: process.env.NODE_ENV === "production",
-        httpOnly: true,
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: 1000 * 60 * 60 * 12
+        secure: process.env.NODE_ENV === "production",   // ✅ hanya HTTPS di production
+        httpOnly: true,                                  // ✅ tidak bisa diakses JS
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // ✅ support cross-domain (frontend beda domain)
+        maxAge: 1000 * 60 * 60 * 12 // 12 jam
     }
 }));
 
-app.use(cors({
-    credentials: true,
-    origin: process.env.FRONTEND_URL,
-}));
+
+
 
 // 🔧 Tambahkan ini setelah cors():
 app.use((req, res, next) => {

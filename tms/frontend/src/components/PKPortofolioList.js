@@ -118,9 +118,9 @@ const PKPortofolioList = ({ talentId }) => {
 
                         </div>
                         <div className="me-2" style={{ width: "20%" }}>
-                            <Link to={`/pekerjakreatif/porto-register/${talentId}`} className="btn btn-success btn-sm">
+                            <a href={`/pekerjakreatif/porto-register/${talentId}`} className="btn btn-success btn-sm">
                                 Tambah Portofolio
-                            </Link>
+                            </a>
                         </div>
                     </div>
                 </div>

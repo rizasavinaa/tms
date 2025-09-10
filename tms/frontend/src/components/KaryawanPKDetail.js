@@ -48,8 +48,21 @@ const KaryawanPKDetail = () => {
         fetchCategories();
 
         const successMessage = sessionStorage.getItem("successMessage");
+
         if (successMessage) {
-            Swal.fire("Sukses", successMessage, "success");
+            Swal.fire({
+                icon: "success",
+                title: "Sukses",
+                text: successMessage,
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+            }).then(() => {
+                // jalankan reload atau navigasi di sini, setelah Swal hilang
+                window.location.reload();
+                // atau
+                // navigate('/halaman-tujuan');
+            });
             sessionStorage.removeItem("successMessage");
         }
     }, [id]);
@@ -247,7 +260,7 @@ const KaryawanPKDetail = () => {
                                                 <div className="mb-3 row">
                                                     <label className="col-sm-3 col-form-label">Posisi</label>
                                                     <div className="col-sm-9">
-                                                        <select name="category_id" className="form-control" value={formData.category_id} onChange={handleChange}>
+                                                        <select name="category_id" className="form-control" value={formData.category_id} onChange={handleChange} required>
                                                             <option value="">- Pilih Posisi -</option>
                                                             {categories.map((cat) => (
                                                                 <option key={cat.id} value={cat.id}>{cat.name}</option>

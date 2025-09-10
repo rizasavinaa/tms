@@ -115,7 +115,7 @@ const KaryawanBuktiKerjaDetail = () => {
         if (formData.start_date > formData.end_date) {
             Swal.fire({
                 icon: 'error',
-                title: 'Kesalahan',
+                title: 'Gagal',
                 text: 'Tanggal mulai tidak boleh lebih besar dari tanggal berakhir.',
             });
             return;
@@ -291,7 +291,7 @@ const KaryawanBuktiKerjaDetail = () => {
                                                 </div>
                                             </div>
                                             <div className="mb-3 row">
-                                                <label className="col-sm-3 col-form-label">Salary</label>
+                                                <label className="col-sm-3 col-form-label">Gaji</label>
                                                 <div className="col-sm-9">
                                                     <p className="form-control-plaintext">
                                                         {data.salary ? `Rp ${Number(data.salary).toLocaleString("id-ID")}` : "-"}

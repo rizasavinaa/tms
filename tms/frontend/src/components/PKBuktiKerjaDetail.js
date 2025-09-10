@@ -15,7 +15,8 @@ const PKBuktiKerjaDetail = () => {
     const [data, setData] = useState(null);
     const [loadingLogs, setLoadingLogs] = useState(false);
     const [logData, setLogData] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingData, setLoadingData] = useState(true);      // untuk fetchData awal
+    const [loadingSubmit, setLoadingSubmit] = useState(false); // untuk submit form
     const [currentPage, setCurrentPage] = useState(1);
     const [sortConfig, setSortConfig] = useState({ key: "created_at", direction: "desc" });
     const rowsPerPage = 10;
@@ -45,7 +46,7 @@ const PKBuktiKerjaDetail = () => {
     }, [id]);
 
     const fetchData = async () => {
-        setLoading(true);
+        setLoadingData(true);
         try {
             const res = await api.get(`/workproofs/${id}`);
             const wp = res.data;
@@ -67,7 +68,7 @@ const PKBuktiKerjaDetail = () => {
         } catch (err) {
             console.error("Gagal mengambil data:", err);
         } finally {
-            setLoading(false);
+            setLoadingData(false);
         }
     };
 
@@ -114,13 +115,13 @@ const PKBuktiKerjaDetail = () => {
         if (formData.start_date > formData.end_date) {
             Swal.fire({
                 icon: 'error',
-                title: 'Kesalahan',
+                title: 'Gagal',
                 text: 'Tanggal mulai tidak boleh lebih besar dari tanggal berakhir.',
             });
             return;
         }
 
-        setLoading(true);
+        setLoadingSubmit(true);
         try {
             // Cek overlap tanggal via API
             const overlapRes = await api.post(`/workproofs/check-overlap`, {
@@ -136,7 +137,7 @@ const PKBuktiKerjaDetail = () => {
                     title: 'Tanggal Bertabrakan',
                     text: overlapRes.data.message || "Periode bukti kerja bertabrakan dengan data lain.",
                 });
-                setLoading(false);
+                setLoadingSubmit(false);
                 return;
             }
 
@@ -146,7 +147,7 @@ const PKBuktiKerjaDetail = () => {
                     title: 'Periode Tidak Valid',
                     text: overlapRes.data.message || "Periode bukti kerja harus berada di dalam periode kontrak aktif.",
                 });
-                setLoading(false);
+                setLoadingSubmit(false);
                 return;
             }
 
@@ -174,7 +175,7 @@ const PKBuktiKerjaDetail = () => {
                 text: 'Gagal menyimpan data',
             });
         } finally {
-            setLoading(false);
+            setLoadingSubmit(false);
         }
     };
 
@@ -241,12 +242,12 @@ const PKBuktiKerjaDetail = () => {
             return <span>{changes}</span>;
         }
     };
-    if (loading || !data) return null;
+    if (loadingData || !data) return null;
 
     return (
         <React.Fragment>
-            <Sidebar activeMenu={7} />
-            {loading && (
+            <Sidebar activeMenu={5} />
+            {loadingSubmit && (
                 <div className="overlay-loading">
                     <div className="loading-content">
                         <div className="spinner-border text-light mb-3"></div>
@@ -296,7 +297,7 @@ const PKBuktiKerjaDetail = () => {
                                                 </div>
                                             </div>
                                             <div className="mb-3 row">
-                                                <label className="col-sm-3 col-form-label">Salary</label>
+                                                <label className="col-sm-3 col-form-label">Gaji</label>
                                                 <div className="col-sm-9">
                                                     <p className="form-control-plaintext">
                                                         {data.salary ? `Rp ${Number(data.salary).toLocaleString("id-ID")}` : "-"}

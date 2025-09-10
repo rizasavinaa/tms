@@ -64,7 +64,7 @@ const KaryawanTalentList = () => {
         <div className="app-content-header">
           <div className="container-fluid">
             <div className="row">
-              <div className="col-sm-6"><h3>Data Talent</h3></div>
+              <div className="col-sm-6"><h3>Data Pekerja Kreatif</h3></div>
               <div className="col-sm-6">
                 <ol className="breadcrumb float-sm-end">
                   <li className="breadcrumb-item"><a href="#">Home</a></li>

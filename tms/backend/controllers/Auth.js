@@ -18,6 +18,9 @@ export const Login = async (req, res) => {
         return res.status(403).json({ msg: "Akun Anda berstatus nonaktif" });
     }
 
+    if (!user.password || user.password.trim() === "") {
+       return res.status(403).json({ msg: "Akun Anda berstatus nonaktif. Cek Email untuk mengatur password anda." });
+    }
     const match = await argon2.verify(user.password, req.body.password);
     if (!match) return res.status(400).json({ msg: "Password Salah" });
 
@@ -41,7 +44,7 @@ export const Login = async (req, res) => {
         if (talent) {
             req.session.talent_id = talent.id;
         }
-    }else if (user.role_id === 4) {
+    } else if (user.role_id === 4) {
         const client = await Client.findOne({
             where: { user_id: user.id }
         });

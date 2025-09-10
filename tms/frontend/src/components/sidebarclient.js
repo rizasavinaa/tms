@@ -87,7 +87,7 @@ function Sidebarclient({ activeMenu }) {
                 {/*begin::Sidebar Brand*/}
                 <div className="sidebar-brand">
                     {/*begin::Brand Link*/}
-                    <a href="./" className="brand-link">
+                    <a href="/" className="brand-link">
                         {/*begin::Brand Image*/}
                         <img src="../../dist/assets/img/logopers.png" alt="Logo" className="brand-image" />
                         {/*end::Brand Image*/}

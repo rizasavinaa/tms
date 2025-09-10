@@ -36,12 +36,14 @@ const KaryawanKontrakDetail = () => {
     const [talent, setTalent] = useState({});
 
     const [isLocked, setIsLocked] = useState(false);
+    const [lockedMessage, setLockedMessage] = useState("");
 
     useEffect(() => {
         const checkProof = async () => {
             try {
                 const res = await api.get(`/contracts/${id}/editable`);
-                setIsLocked(res.data.hasProof);
+                setIsLocked(!res.data.editable); // kunci jika tidak editable
+                setLockedMessage(res.data.message);
             } catch (error) {
                 console.error("Gagal cek bukti kerja:", error);
             }
@@ -192,8 +194,19 @@ const KaryawanKontrakDetail = () => {
 
         const today = new Date().toISOString().split("T")[0]; // format YYYY-MM-DD
         const isActive = formData.end_date >= today;
+        const startDate = new Date(formData.start_date);
+        const endDate = new Date(formData.end_date);
 
         try {
+            if (formData.end_date && endDate < startDate) {
+                setLoading(false);
+                Swal.fire({
+                    icon: "warning",
+                    title: "Tanggal tidak valid",
+                    text: "Tanggal berakhir tidak boleh lebih kecil dari tanggal mulai.",
+                });
+                return;
+            }
             if (isActive) {
                 if (formData.client_id === "other") {
                     Swal.fire({
@@ -232,7 +245,7 @@ const KaryawanKontrakDetail = () => {
                 Swal.fire({
                     icon: "warning",
                     title: "Terkunci",
-                    text: "Kontrak ini tidak bisa diedit karena sudah memiliki bukti kerja terkait."
+                    text: lockedMessage || "Kontrak ini tidak bisa diedit."
                 });
                 return;
             }
@@ -454,10 +467,10 @@ const KaryawanKontrakDetail = () => {
                                             <button type="submit" className="btn btn-success" disabled={isLocked}>Simpan</button>
                                             {isLocked ? (
                                                 <small className="text-muted d-block mt-1">
-                                                    ⚠️ Kontrak ini tidak bisa diedit karena sudah memiliki bukti kerja terkait.
+                                                    ⚠️ {lockedMessage}
                                                 </small>
                                             ) : (
-                                               ""
+                                                ""
                                             )}
                                         </div>
                                     </div>

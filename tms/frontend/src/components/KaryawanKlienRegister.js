@@ -68,7 +68,7 @@ const KaryawanKlienRegister = () => {
 
         try {
             await api.post(`/clients`, formData);
-            Swal.fire("Sukses", "Data klien berhasil disimpan", "success");
+            // Swal.fire("Sukses", "Data klien berhasil disimpan", "success");
             setFormData({
                 name: "",
                 supervisor_name: "",
@@ -77,7 +77,7 @@ const KaryawanKlienRegister = () => {
                 description: "",
             });
             sessionStorage.setItem("successMessage", "Registrasi klien berhasil!");
-            navigate("/klien"); // ganti sesuai rute halaman daftar klien kamu
+            navigate("/karyawan/klien"); // ganti sesuai rute halaman daftar klien kamu
             // setTimeout(() => window.location.reload(), 100);
         } catch (err) {
             Swal.fire("Error", "Gagal menyimpan data klien", "error");
@@ -88,7 +88,7 @@ const KaryawanKlienRegister = () => {
 
     return (
         <>
-            <Sidebar activeMenu={3} />
+            <Sidebar activeMenu={7} />
             <main className="app-main">
                 <div className="app-content-header">
                     <div className="container-fluid">

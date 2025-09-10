@@ -226,7 +226,7 @@ const ItUserDetail = () => {
                                         <div className="row mb-3 align-items-center">
                                             <label className="col-sm-3 col-form-label">Nama Panjang</label>
                                             <div className="col-sm-9">
-                                                <input type="text" className="form-control" name="fullname" value={formData.fullname} onChange={handleInputChange} />
+                                                <input type="text" className="form-control" name="fullname" value={formData.fullname} onChange={handleInputChange} required/>
                                             </div>
                                         </div>
                                         <div className="row mb-3">

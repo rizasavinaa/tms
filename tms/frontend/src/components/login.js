@@ -124,7 +124,7 @@ const Login = () => {
         </div>
       </div>
 
-      <Jsfunction />
+      {user && <Jsfunction />}
     </div>
   );
 }

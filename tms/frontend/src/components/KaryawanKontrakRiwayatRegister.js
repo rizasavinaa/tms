@@ -120,7 +120,7 @@ const KaryawanKontrakRiwayatRegister = () => {
             Swal.fire({
                 icon: "error",
                 title: "Gagal",
-                text: error.response?.data?.message || "Terjadi kesalahan saat menyimpan kontrak",
+                text: error.response?.data?.message || "Terjadi kesalahan saat menyimpan riwayat kerja",
             });
         } finally {
             setLoading(false);
@@ -223,7 +223,7 @@ const KaryawanKontrakRiwayatRegister = () => {
                                     </div>
 
                                     <div className="mb-3 row align-items-center">
-                                        <label className="col-sm-3 col-form-label">Upload File Kontrak (PDF)</label>
+                                        <label className="col-sm-3 col-form-label">Upload File Riwayat Kerja (PDF)</label>
                                         <div className="col-sm-9 w-50">
                                             <input
                                                 type="file"
@@ -238,7 +238,7 @@ const KaryawanKontrakRiwayatRegister = () => {
                                     <div className="mb-3 row">
                                         <div className="col-sm-3"></div>
                                         <div className="col-sm-9 w-50">
-                                            <button type="submit" className="btn btn-success">Simpan Kontrak</button>
+                                            <button type="submit" className="btn btn-success">Simpan Riwayat Kerja</button>
                                         </div>
                                     </div>
                                 </form>

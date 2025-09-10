@@ -308,12 +308,12 @@ const KaryawanReportBuktiKerja = () => {
                                                         <td>{validationStatusMap[proof.validation_status] || "Unknown"}</td>
                                                         <td>{paymentStatusMap[proof.payment_status] || "Unknown"}</td>
                                                         <td>
-                                                            <Link
-                                                                to={`/karyawan/bukti-kerja/${proof.id}`}
+                                                            <a
+                                                                href={`/karyawan/bukti-kerja/${proof.id}`}
                                                                 className="btn btn-secondary btn-sm me-1"
                                                             >
                                                                 Lihat Detail
-                                                            </Link>
+                                                            </a>
                                                         </td>
                                                     </tr>
                                                 ))}

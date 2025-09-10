@@ -216,7 +216,7 @@ const PKBuktiKerjaRegister = () => {
                                     </div>
 
                                     <div className="mb-3 row">
-                                        <label className="col-sm-3 col-form-label">Upload File (PDF/JPG)</label>
+                                        <label className="col-sm-3 col-form-label">Upload File (PDF/Image(JPG,PNG, etc))</label>
                                         <div className="col-sm-9 w-50">
                                             <input
                                                 type="file"

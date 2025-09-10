@@ -123,9 +123,9 @@ const KaryawanPortoListByTalent = ({ talentId }) => {
                         </div>
                         <div className="me-2" style={{ width: "20%" }}>
                             {user?.role_id !== 4 && (
-                                <Link to={`/karyawan/porto-register/${talentId}`} className="btn btn-success btn-sm">
+                                <a href={`/karyawan/porto-register/${talentId}`} className="btn btn-success btn-sm">
                                     Tambah Portofolio
-                                </Link>
+                                </a>
                             )}
                         </div>
                     </div>

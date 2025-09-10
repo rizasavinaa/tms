@@ -117,16 +117,6 @@ const KaryawanKontrakRegister = () => {
 
             sessionStorage.setItem("successMessage", "Registrasi berhasil!");
             navigate(`/karyawan/pk/${id}`);
-            // setTimeout(() => {
-            //     window.location.reload(); // Paksa reload setelah navigasi
-            // }, 100);
-
-            // Swal.fire({
-            //     icon: "success",
-            //     title: "Berhasil",
-            //     text: "Kontrak berhasil ditambahkan",
-            // });
-            // Bisa tambah navigasi kalau perlu
         } catch (error) {
             Swal.fire({
                 icon: "error",
@@ -140,7 +130,7 @@ const KaryawanKontrakRegister = () => {
 
     return (
         <>
-            <Sidebar activeMenu={3} />
+            <Sidebar activeMenu={8} />
             <main className="app-main">
                 <div className="app-content-header">
                     <div className="container-fluid">

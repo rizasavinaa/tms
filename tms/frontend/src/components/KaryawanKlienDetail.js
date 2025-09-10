@@ -345,9 +345,9 @@ const KaryawanKlienDetail = () => {
                                                                             <i className="fas fa-download"></i>
                                                                         </a>
 
-                                                                        <Link to={`/karyawan/kontrak/${t.id}`} className="btn btn-secondary btn-sm me-1">
+                                                                        <a href={`/karyawan/kontrak/${t.id}`} className="btn btn-secondary btn-sm me-1">
                                                                             Lihat Detail
-                                                                        </Link>
+                                                                        </a>
                                                                     </td>
                                                                 </tr>
                                                             ))

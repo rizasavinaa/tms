@@ -19,6 +19,7 @@ import sequelize from "../config/Database.js";
 import PasswordReset from "../models/PasswordResetModel.js";
 import requestIp from "request-ip";
 import xlsx from "xlsx";
+import dayjs from "dayjs";
 
 dotenv.config();
 
@@ -41,7 +42,17 @@ export const ReportUserActivity = async (req, res) => {
 
         // Build reusable filters
         const dateFilter = startDate && endDate
-            ? { createdAt: { [Op.between]: [new Date(startDate), new Date(endDate)] } }
+            ?
+
+            {
+                createdAt: {
+                    [Op.between]: [
+                        dayjs(startDate).startOf("day").toDate(),
+                        dayjs(endDate).endOf("day").toDate()
+                    ]
+                }
+            }
+
             : {};
 
         const keywordFilter = keyword
@@ -139,7 +150,7 @@ export const ReportUserActivity = async (req, res) => {
         const sortedLogs = allLogs.sort((a, b) => {
             const aValue = a[sortBy] ?? '';
             const bValue = b[sortBy] ?? '';
-        
+
             if (sortBy === 'createdAt') {
                 return sortOrder.toUpperCase() === 'ASC'
                     ? new Date(aValue) - new Date(bValue)
@@ -150,7 +161,7 @@ export const ReportUserActivity = async (req, res) => {
                     : bValue.toString().localeCompare(aValue.toString());
             }
         });
-        
+
 
         const paginatedLogs = sortedLogs.slice(offset, offset + parsedLimit);
         const totalRecords = allLogs.length;
@@ -176,7 +187,17 @@ export const ExportUserActivity = async (req, res) => {
         } = req.query;
 
         const dateFilter = startDate && endDate
-            ? { createdAt: { [Op.between]: [new Date(startDate), new Date(endDate)] } }
+            ?
+
+            {
+                createdAt: {
+                    [Op.between]: [
+                        dayjs(startDate).startOf("day").toDate(),
+                        dayjs(endDate).endOf("day").toDate()
+                    ]
+                }
+            }
+
             : {};
 
         const keywordFilter = keyword
@@ -271,7 +292,7 @@ export const ExportUserActivity = async (req, res) => {
         const sortedLogs = allLogs.sort((a, b) => {
             const aValue = a[sortBy] ?? '';
             const bValue = b[sortBy] ?? '';
-        
+
             if (sortBy === 'createdAt') {
                 return sortOrder.toUpperCase() === 'ASC'
                     ? new Date(aValue) - new Date(bValue)
@@ -282,8 +303,8 @@ export const ExportUserActivity = async (req, res) => {
                     : bValue.toString().localeCompare(aValue.toString());
             }
         });
-        
-        
+
+
 
         const data = sortedLogs.map((log) => {
             const changesDetail = processChanges(log.changes);

@@ -87,7 +87,7 @@ const KaryawanKontrakList = () => {
                                                     onChange={e => setFilter(e.target.value)}
                                                 >
                                                     <option value="id">ID</option>
-                                                    <option value="name">Nama Talent</option>
+                                                    <option value="name">Nama Pekerja Kreatif</option>
                                                     <option value="category">Posisi</option>
                                                 </select>
                                             </div>
@@ -108,7 +108,7 @@ const KaryawanKontrakList = () => {
                                                 <tr>
                                                     {[
                                                         { key: 'id', label: 'ID' },
-                                                        { key: 'talent_name', label: 'Nama Talent' },
+                                                        { key: 'talent_name', label: 'Nama Pekerja Kreatif' },
                                                         { key: 'category', label: 'Posisi' },
                                                         { key: 'start_date', label: 'Tanggal Mulai' },
                                                         { key: 'end_date', label: 'Tanggal Berakhir' }
@@ -138,9 +138,9 @@ const KaryawanKontrakList = () => {
                                                                 <i className="fas fa-download"></i>
                                                             </a>
                                                             {user?.role_id !== 4 && (
-                                                            <Link to={`/karyawan/kontrak/${item.id}`} className="btn btn-secondary btn-sm">
+                                                            <a href={`/karyawan/kontrak/${item.id}`} className="btn btn-secondary btn-sm">
                                                                 Lihat Detail
-                                                            </Link>
+                                                            </a>
                                                             )}
                                                         </td>
                                                     </tr>

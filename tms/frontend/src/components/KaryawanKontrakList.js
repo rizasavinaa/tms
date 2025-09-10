@@ -103,7 +103,7 @@ const KaryawanKontrakList = () => {
                                                     {[
                                                         { key: 'id', label: 'ID' },
                                                         { key: 'client_name', label: 'Nama Klien' },
-                                                        { key: 'talent_name', label: 'Nama Talent' },
+                                                        { key: 'talent_name', label: 'Nama Pekerja Kreatif' },
                                                         { key: 'category', label: 'Posisi' },
                                                         { key: 'start_date', label: 'Tanggal Mulai' },
                                                         { key: 'end_date', label: 'Tanggal Berakhir' }
@@ -133,9 +133,9 @@ const KaryawanKontrakList = () => {
                                                             >
                                                                 <i className="fas fa-download"></i>
                                                             </a>
-                                                            <Link to={`/karyawan/kontrak/${item.id}`} className="btn btn-secondary btn-sm">
+                                                            <a href={`/karyawan/kontrak/${item.id}`} className="btn btn-secondary btn-sm">
                                                                 Lihat Detail
-                                                            </Link>
+                                                            </a>
                                                         </td>
                                                     </tr>
                                                 ))}

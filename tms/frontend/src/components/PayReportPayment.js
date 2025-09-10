@@ -127,13 +127,19 @@ const PayReportPayment = () => {
                 return proof.talent?.name?.toLowerCase() || "";
             case "category":
                 return proof.talent_work_history?.category?.toLowerCase() || "";
+            case "salary":
+                // Pastikan menjadi number untuk sorting
+                return Number(proof.talent_work_history?.salary) || 0;
             case "start_date":
             case "end_date":
                 return new Date(proof[sortColumn]).getTime();
+            case "payment_status":
+                return proof.payment_status != null ? proof.payment_status : -1;
             default:
                 return (proof[sortColumn]?.toString().toLowerCase()) || "";
         }
     };
+
 
     const sortedProofs = [...filteredProofs].sort((a, b) => {
         const valueA = getSortValue(a, sortColumn);
@@ -278,20 +284,7 @@ const PayReportPayment = () => {
                                                         { key: "salary", label: "Gaji" },
                                                         { key: "start_date", label: "Tanggal Mulai Periode" },
                                                         { key: "end_date", label: "Tanggal Akhir Periode" },
-                                                    ].map((col) => (
-                                                        <th
-                                                            key={col.key}
-                                                            onClick={() => handleSort(col.key)}
-                                                            className="sortable"
-                                                            style={{ cursor: "pointer" }}
-                                                        >
-                                                            {col.label}{" "}
-                                                            {sortColumn === col.key ? (sortOrder === "asc" ? "▲" : "▼") : ""}
-                                                        </th>
-                                                    ))}
-                                                    <th>Status Pembayaran</th>
-
-                                                    {[
+                                                        { key: "payment_status", label: "Status Pembayaran" },
                                                         { key: "payment_date", label: "Tanggal Pembayaran" },
                                                     ].map((col) => (
                                                         <th

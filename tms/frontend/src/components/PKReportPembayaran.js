@@ -61,6 +61,24 @@ const PKReportPembayaran = () => {
         }
     }, [id]);
 
+    useEffect(() => {
+        if (filterStartDate && filterEndDate) {
+            const start = new Date(filterStartDate);
+            const end = new Date(filterEndDate);
+
+            if (start > end) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Periode Tidak Valid",
+                    text: "Tanggal mulai tidak boleh lebih besar dari tanggal berakhir.",
+                });
+
+                // Reset tanggal agar tidak error filter
+                setFilterStartDate("");
+                setFilterEndDate("");
+            }
+        }
+    }, [filterStartDate, filterEndDate]);
 
     const handleSort = (column) => {
         const order = sortColumn === column && sortOrder === "asc" ? "desc" : "asc";
@@ -266,12 +284,12 @@ const PKReportPembayaran = () => {
                                                         {/* <td>{validationStatusMap[proof.validation_status] || "Unknown"}</td> */}
                                                         <td>{paymentStatusMap[proof.payment_status] || "Unknown"}</td>
                                                         <td>
-                                                            <Link
-                                                                to={`/pekerjakreatif/workproof-detail/${proof.id}`}
+                                                            <a
+                                                                href={`/pekerjakreatif/workproof-detail/${proof.id}`}
                                                                 className="btn btn-secondary btn-sm me-1"
                                                             >
                                                                 Lihat Detail
-                                                            </Link>
+                                                            </a>
                                                         </td>
                                                     </tr>
                                                 ))}

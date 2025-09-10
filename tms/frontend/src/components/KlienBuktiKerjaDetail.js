@@ -16,7 +16,8 @@ const KlienBuktiKerjaDetail = () => {
     const [data, setData] = useState(null);
     const [loadingLogs, setLoadingLogs] = useState(false);
     const [logData, setLogData] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingData, setLoadingData] = useState(true);      // saat ambil data awal
+    const [loadingSubmit, setLoadingSubmit] = useState(false); // saat submit validasi
     const [currentPage, setCurrentPage] = useState(1);
     const [sortConfig, setSortConfig] = useState({ key: "created_at", direction: "desc" });
     const rowsPerPage = 10;
@@ -46,7 +47,7 @@ const KlienBuktiKerjaDetail = () => {
     }, [id]);
 
     const fetchData = async () => {
-        setLoading(true);
+        setLoadingData(true);
         try {
             const res = await api.get(`/workproofs/${id}`);
             const wp = res.data;
@@ -68,7 +69,7 @@ const KlienBuktiKerjaDetail = () => {
         } catch (err) {
             console.error("Gagal mengambil data:", err);
         } finally {
-            setLoading(false);
+            setLoadingData(false);
         }
     };
 
@@ -130,7 +131,7 @@ const KlienBuktiKerjaDetail = () => {
             });
             return;
         }
-        setLoading(true); // aktifkan loading sebelum request
+        setLoadingSubmit(true); // aktifkan loading sebelum request
 
         try {
             const { data } = await api.put(`/workproofs/validate/${id}`, {
@@ -142,12 +143,11 @@ const KlienBuktiKerjaDetail = () => {
                 icon: "success",
                 title: "Berhasil",
                 text: "Validasi bukti kerja berhasil disimpan.",
-                timer: 1500,
                 showConfirmButton: false,
-            }).then(() => {
-                setTimeout(() => {
+                timer: 1500,
+                willClose: () => {
                     window.location.reload();
-                }, 500);
+                }
             });
 
         } catch (error) {
@@ -160,7 +160,7 @@ const KlienBuktiKerjaDetail = () => {
             });
 
         } finally {
-            setLoading(false); // nonaktifkan loading setelah request selesai
+            setLoadingSubmit(false); // nonaktifkan loading setelah request selesai
         }
 
     };
@@ -230,12 +230,12 @@ const KlienBuktiKerjaDetail = () => {
             return <span>{changes}</span>;
         }
     };
-    if (loading || !data) return null;
+    if (loadingData || !data) return null;
 
     return (
         <React.Fragment>
             <Sidebar activeMenu={2} />
-            {loading && (
+            {loadingSubmit && (
                 <div className="overlay-loading">
                     <div className="loading-content">
                         <div className="spinner-border text-light mb-3"></div>
@@ -279,7 +279,7 @@ const KlienBuktiKerjaDetail = () => {
                                             </div>
                                         </div>
                                         <div className="mb-3 row">
-                                            <label className="col-sm-3 col-form-label">Salary</label>
+                                            <label className="col-sm-3 col-form-label">Gaji</label>
                                             <div className="col-sm-9">
                                                 <p className="form-control-plaintext">
                                                     {data.salary ? `Rp ${Number(data.salary).toLocaleString("id-ID")}` : "-"}

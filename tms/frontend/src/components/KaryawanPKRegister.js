@@ -105,7 +105,7 @@ const KaryawanPKRegister = () => {
         // ✅ Jika email tersedia, lanjutkan
         try {
             await api.post(`/talents`, formData);
-            Swal.fire("Sukses", "Data berhasil disimpan", "success");
+            // Swal.fire("Sukses", "Data berhasil disimpan", "success");
             setFormData({
                 name: "",
                 email: "",

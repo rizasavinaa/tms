@@ -350,14 +350,17 @@ const PayBuktiKerjaList = () => {
                                                         <td>
                                                             {proof.payment_status === 1 ? (
                                                                 "Paid"
-                                                            ) : (
+                                                            ) : proof.validation_status === 1 ? (
                                                                 <button
                                                                     onClick={() => handlePaymentProcessed(proof.id)}
                                                                     className="btn btn-secondary btn-sm me-1"
                                                                 >
                                                                     Pembayaran Telah Diproses
                                                                 </button>
+                                                            ) : (
+                                                                "Belum Tervalidasi"
                                                             )}
+
 
                                                         </td>
                                                     </tr>

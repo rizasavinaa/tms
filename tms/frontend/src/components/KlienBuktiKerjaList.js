@@ -249,19 +249,19 @@ const KlienBuktiKerjaList = () => {
                                                         <td>{paymentStatusMap[proof.payment_status] || "Unknown"}</td>
                                                         <td>
                                                             {proof.validation_status === 0 ? (
-                                                                <Link
-                                                                    to={`/client/bukti-kerja/${proof.id}`}
+                                                                <a
+                                                                    href={`/client/bukti-kerja/${proof.id}`}
                                                                     className="btn btn-success btn-sm me-1"
                                                                 >
                                                                     Validasi
-                                                                </Link>
+                                                                </a>
                                                             ) : (
-                                                                <Link
-                                                                    to={`/client/bukti-kerja/${proof.id}`}
+                                                                <a
+                                                                    href={`/client/bukti-kerja/${proof.id}`}
                                                                     className="btn btn-secondary btn-sm me-1"
                                                                 >
                                                                     Lihat Detail
-                                                                </Link>
+                                                                </a>
                                                             )}
 
                                                         </td>
